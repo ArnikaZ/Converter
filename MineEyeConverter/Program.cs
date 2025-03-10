@@ -25,7 +25,7 @@ namespace MineEyeConverter
         
         static void Main(string[] args)
         {
-           // Configure application from appsettings.json and command - line arguments
+            //Configure application from appsettings.json and command - line arguments
             var config = new ConfigurationBuilder()
            .SetBasePath(AppContext.BaseDirectory)
            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -55,8 +55,8 @@ namespace MineEyeConverter
             });
 
 
-            // int exitCodeValue = (int)Convert.ChangeType(exitCode, exitCode.GetTypeCode());
-            // Environment.ExitCode = exitCodeValue;
+            int exitCodeValue = (int)Convert.ChangeType(exitCode, exitCode.GetTypeCode());
+            Environment.ExitCode = exitCodeValue;
 
 
 
@@ -80,8 +80,8 @@ namespace MineEyeConverter
             //{
             //    Console.WriteLine("Starting UGS communication...");
             //    client.Start();
-                
-            //    Thread.Sleep(3000);//time to perform initial polling
+
+            //    Thread.Sleep(3000);
 
             //    foreach (var device in client.SlaveDevices.Values)
             //    {
@@ -99,7 +99,6 @@ namespace MineEyeConverter
             //}
             //finally
             //{
-            //    // Clean up
             //    client.Stop();
             //    client.Dispose();
             //}

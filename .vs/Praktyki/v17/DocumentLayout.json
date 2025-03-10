@@ -3,6 +3,18 @@
   "WorkspaceRootPath": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3\\mineeyeconverter3\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3\\mineeyeconverter3\\mineeyeconverter\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3\\mineeyeconverter3\\mineeyeconverter\\services\\modbusclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\services\\modbusclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3\\mineeyeconverter3\\.gitattributes||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:.gitattributes||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3\\mineeyeconverter3\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}"
     }
@@ -14,7 +26,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 8,
+          "SelectedChildIndex": 9,
           "Children": [
             {
               "$type": "Bookmark",
@@ -50,16 +62,53 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ModbusClient.cs",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusClient.cs",
+              "RelativeDocumentMoniker": "MineEyeConverter\\Services\\ModbusClient.cs",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusClient.cs",
+              "RelativeToolTip": "MineEyeConverter\\Services\\ModbusClient.cs",
+              "ViewState": "AgIAAOkBAAAAAAAAAAAAAEUBAABBAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-05T20:03:01.91Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3\\mineeyeconverter3\\MineEyeConverter\\Program.cs",
+              "RelativeDocumentMoniker": "MineEyeConverter\\Program.cs",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3\\mineeyeconverter3\\MineEyeConverter\\Program.cs",
+              "RelativeToolTip": "MineEyeConverter\\Program.cs",
+              "ViewState": "AgIAABsAAAAAAAAAAAAUwDcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-05T17:38:43.249Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": ".gitattributes",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3\\mineeyeconverter3\\.gitattributes",
+              "RelativeDocumentMoniker": ".gitattributes",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3\\mineeyeconverter3\\.gitattributes",
+              "RelativeToolTip": ".gitattributes",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-03-03T08:45:25.308Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": ".gitignore",
               "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3\\mineeyeconverter3\\.gitignore",
               "RelativeDocumentMoniker": ".gitignore",
               "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3\\mineeyeconverter3\\.gitignore",
               "RelativeToolTip": ".gitignore",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAA==",
+              "ViewState": "AgIAABsAAAAAAAAAAAAAACUAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-03-03T08:42:10.284Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-03T08:42:10.284Z"
             }
           ]
         }
