@@ -4,11 +4,11 @@
   "Items": [
     {
       "Id": "4875c514-b1f3-422b-95d5-56e428a0bd3b",
-      "Command": "install -name:Przenosnik14"
+      "Command": "install -name:Przenosnik16"
     },
     {
       "Id": "8efeed20-f40b-4f5f-ad50-0c6acd5272b1",
-      "Command": "run -name:Przenosnik15"
+      "Command": "run -name:Przenosnik16"
     }
   ]
 }

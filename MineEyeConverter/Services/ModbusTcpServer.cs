@@ -17,16 +17,17 @@ namespace MineEyeConverter
     /// </summary>
     public class ModbusTcpServer
     {
-        private readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private ModbusServer _tcpServer; 
-        private ClientHandler _rtuClient; 
+        private readonly log4net.ILog _log = log4net.LogManager.GetLogger(typeof(ModbusTcpServer));
+        private readonly ModbusServer _tcpServer; 
+        private readonly ClientHandler _rtuClient; 
         private readonly Dictionary<byte, ModbusSlaveDevice> _slaveDevices; //klucz - adres urządzenia, wartość - obiekt slave
         private bool _isRunning; 
         private readonly object _syncLock = new object();
         public readonly Configuration _config;
 
-        public IOperationModeHandler operationModeHandler;
         private List<Client> modbusClientAccounts { get; set; }
+        public IOperationModeHandler OperationModeHandler { get; set; }
+
         private int _previousConnectionCount = -1;
 
 
@@ -35,11 +36,12 @@ namespace MineEyeConverter
         {
 
             _log.InfoFormat("Initializing Modbus server for instance '{0}'", instanceName);
-            _config = ConfigLoader.LoadConfiguration("config.xml");
+            _config = Config.ConfigLoader.LoadConfiguration("config.xml");
             var instanceConfig = _config.Instances.FirstOrDefault(i => string.Equals(i.Name, instanceName, StringComparison.OrdinalIgnoreCase));
             if (instanceConfig == null)
             {
                 _log.ErrorFormat("Instance '{0}' not found in configuration", instanceName);
+                throw new InvalidOperationException($"Instance '{instanceName}' not found in configuration");
             }
             int listeningPort = instanceConfig.ListeningPort;
             string connectionType = instanceConfig.ConnectionType;
@@ -50,13 +52,14 @@ namespace MineEyeConverter
             switch (operationMode.ToLower())
             {
                 case "auto":
-                    operationModeHandler = new AutoModeHandler();
+                    OperationModeHandler = new AutoModeHandler();
                     break;
                 case "manual":
-                    operationModeHandler = new ManualModeHandler();
+                    OperationModeHandler = new ManualModeHandler();
                     break;
                 default:
                     _log.ErrorFormat("Unknown operation mode {0}", operationMode);
+                    OperationModeHandler = new AutoModeHandler();
                     break;
             }
 
@@ -79,7 +82,7 @@ namespace MineEyeConverter
 
             if (connectionType.Equals("COM", StringComparison.OrdinalIgnoreCase))
             {
-                _rtuClient = new ClientHandler(operationModeHandler, _tcpServer)
+                _rtuClient = new ClientHandler(OperationModeHandler, _tcpServer)
                 {
                     SerialDataProvider = new SerialProvider
                     {
@@ -94,7 +97,7 @@ namespace MineEyeConverter
             }
             else if (connectionType.Equals("RtuOverTcp", StringComparison.OrdinalIgnoreCase))
             {
-                _rtuClient = new ClientHandler(operationModeHandler, _tcpServer)
+                _rtuClient = new ClientHandler(OperationModeHandler, _tcpServer)
                 {
                     TcpDataProvider = new TcpProvider
                     {
@@ -107,6 +110,7 @@ namespace MineEyeConverter
             else
             {
                 _log.ErrorFormat("Unsupported connection type: {0}", connectionType);
+                throw new ArgumentException($"Unsupported connection type: {connectionType}");
             }
 
 
@@ -127,11 +131,11 @@ namespace MineEyeConverter
             _tcpServer.CoilsChanged += HandleCoilsChanged;
             _tcpServer.HoldingRegistersChanged += HandleHoldingRegistersChanged;
             _tcpServer.NumberOfConnectedClientsChanged += HandleClientConnectionChanged;
-            _tcpServer.OperationModeHandler = operationModeHandler;
+            _tcpServer.OperationModeHandler = OperationModeHandler;
             
         }
 
-        private Parity ParseParity(string parity)
+        private static Parity ParseParity(string parity)
         {
             return parity switch
             {
@@ -143,7 +147,7 @@ namespace MineEyeConverter
                 _ => Parity.None,
             };
         }
-        private StopBits ParseStopBits(int stopBits)
+        private static StopBits ParseStopBits(int stopBits)
         {
             return stopBits switch
             {
@@ -191,7 +195,7 @@ namespace MineEyeConverter
                 lock (_syncLock)
                 {
 
-                    operationModeHandler.HandleCoilsChanged(slaveId, coil, numberOfPoints, _tcpServer, _rtuClient, _slaveDevices);
+                    OperationModeHandler.HandleCoilsChanged(slaveId, coil, numberOfPoints, _tcpServer, _rtuClient, _slaveDevices);
 
                 }
 
@@ -208,7 +212,7 @@ namespace MineEyeConverter
             {
                 lock (_syncLock)
                 {
-                    operationModeHandler.HandleHoldingRegistersChanged(slaveId, register, numberOfPoints, _tcpServer, _rtuClient, _slaveDevices);
+                    OperationModeHandler.HandleHoldingRegistersChanged(slaveId, register, numberOfPoints, _tcpServer, _rtuClient, _slaveDevices);
                     
                    
                 }

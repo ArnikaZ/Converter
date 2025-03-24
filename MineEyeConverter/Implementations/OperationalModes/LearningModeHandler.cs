@@ -15,78 +15,104 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using log4net;
 
 namespace MineEyeConverter
 {
     public class LearningModeHandler 
     {
-        private readonly Configuration _config;
-        private List<byte> _slaveIds; 
+        private readonly IModbusFactory factory;
+        private IModbusMaster ?master;
+        private readonly List<byte> _slaveIds;
+        private readonly string xmlFilePath;
 
-        private readonly IModbusMaster master;
-        private readonly ModbusFactory factory;
+        private SerialPort? serialPort;
+        private SerialPortAdapter? _serialPortAdapter;
+        private TcpClient? tcpClient;
+        private TcpClientAdapter? _tcpClientAdapter;
 
-        private SerialPort serialPort;
-        private SerialPortAdapter _serialPortAdapter;
-
-        private TcpClient tcpClient;
-        private TcpClientAdapter _tcpClientAdapter;
-
-        string xmlFilePath = null;
-        private readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly ILog _log = LogManager.GetLogger(typeof(LearningModeHandler));
         public LearningModeHandler(string instanceName)
         {
-            _config = ConfigLoader.LoadConfiguration("config.xml");
-            var instanceConfig = _config.Instances.FirstOrDefault(i => string.Equals(i.Name, instanceName, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(instanceName))
+            {
+                throw new ArgumentException("Instance name must not be null or empty.", nameof(instanceName));
+            }
+            var config = Config.ConfigLoader.LoadConfiguration("config.xml");
+            var instanceConfig = GetInstanceConfig(config, instanceName);
+            factory = new ModbusFactory();
+            _slaveIds = new List<byte>();
+            xmlFilePath = instanceName + ".xml";
+
+            switch (instanceConfig.ConnectionType.ToLower())
+            {
+                case "com":
+                    InitializeComConnection(instanceConfig.RtuSettings);
+                    break;
+                case "rtuovertcp":
+                    InitializeRtuOverTcpConnection(instanceConfig.RtuSettings);
+                    break;
+                default:
+                    _log.ErrorFormat("Unsupported connection type: {0}", instanceConfig.ConnectionType);
+                    throw new ArgumentException($"Unsupported connection type: {instanceConfig.ConnectionType}");
+            }
+            InitializeSlaveList(instanceConfig);
+    
+        }
+
+        private Instance GetInstanceConfig(Configuration config, string instanceName)
+        {
+            var instanceConfig = config.Instances
+                .FirstOrDefault(i => string.Equals(i.Name, instanceName, StringComparison.OrdinalIgnoreCase));
+
             if (instanceConfig == null)
             {
                 _log.ErrorFormat("Instance '{0}' not found in configuration", instanceName);
+                throw new KeyNotFoundException($"Instance '{instanceName}' not found in configuration.");
             }
-            string connectionType = instanceConfig.ConnectionType;
-            RtuSettings rtuSettings = instanceConfig.RtuSettings;
-            _slaveIds = new List<byte>();
-            string operationMode = instanceConfig.OperationMode;
-            xmlFilePath = instanceName + ".xml";
 
-            string portName = rtuSettings.PortName;
-            int baudRate = rtuSettings.BaudRate.HasValue ? rtuSettings.BaudRate.Value : 9600;
+            return instanceConfig;
+        }
+        private void InitializeRtuOverTcpConnection(RtuSettings rtuSettings)
+        {
+            if (string.IsNullOrWhiteSpace(rtuSettings.IpAddress))
+            {
+                throw new ArgumentException("IpAddress must be specified for RtuOverTcp connection.");
+            }
+
+            int port = rtuSettings.Port ?? 502;
+            master?.Dispose();
+            tcpClient?.Dispose();
+            _tcpClientAdapter?.Dispose();
+            tcpClient = new TcpClient(rtuSettings.IpAddress, port);
+            _tcpClientAdapter = new TcpClientAdapter(tcpClient);
+            master = factory.CreateRtuMaster(_tcpClientAdapter);
+            _log.InfoFormat("Tcp provider: {0} {1}", rtuSettings.IpAddress, port);
+        }
+
+        private void InitializeComConnection(RtuSettings rtuSettings)
+        {
+            if (string.IsNullOrWhiteSpace(rtuSettings.PortName))
+            {
+                throw new ArgumentException("PortName must be specified for COM connection.");
+            }
+            int baudRate = rtuSettings.BaudRate ?? 9600;
             Parity parity = ParseParity(rtuSettings.Parity);
-            int dataBits = rtuSettings.DataBits.HasValue ? rtuSettings.DataBits.Value : 8;
+            int dataBits = rtuSettings.DataBits ?? 8;
             StopBits stopBits = rtuSettings.StopBits.HasValue ? ParseStopBits(rtuSettings.StopBits.Value) : StopBits.One;
 
-            string ip = rtuSettings.IpAddress;
-            int port = rtuSettings.Port.HasValue ? rtuSettings.Port.Value : 502;
-
-            factory = new ModbusFactory();
-            // Konfiguracja klienta RTU
-            if (connectionType.Equals("COM", StringComparison.OrdinalIgnoreCase))
-            {
-                master?.Dispose();
-                serialPort?.Dispose();
-                _serialPortAdapter?.Dispose();
-                serialPort = new SerialPort(portName, baudRate, parity, dataBits, stopBits);
-                _serialPortAdapter = new SerialPortAdapter(serialPort);
-                serialPort.Open();
-                var transport = factory.CreateRtuTransport(_serialPortAdapter);
-                master = factory.CreateMaster(transport);
-                _log.InfoFormat("COM provider: {0}", portName);
-               
-            }
-            else if (connectionType.Equals("RtuOverTcp", StringComparison.OrdinalIgnoreCase))
-            {
-                master?.Dispose();
-                tcpClient?.Dispose();
-                _tcpClientAdapter?.Dispose();
-                tcpClient = new TcpClient(ip, port);
-                _tcpClientAdapter = new TcpClientAdapter(tcpClient);
-                master = factory.CreateRtuMaster(_tcpClientAdapter);
-                _log.InfoFormat("Tcp provider: {0} {1}", ip, port);
-            }
-            else
-            {
-                _log.ErrorFormat("Unsupported connection type: {0}", connectionType);
-            }
-  
+            master?.Dispose();
+            serialPort?.Dispose();
+            _serialPortAdapter?.Dispose();
+            serialPort = new SerialPort(rtuSettings.PortName, baudRate, parity, dataBits, stopBits);
+            _serialPortAdapter = new SerialPortAdapter(serialPort);
+            serialPort.Open();
+            var transport = factory.CreateRtuTransport(_serialPortAdapter);
+            master = factory.CreateMaster(transport);
+            _log.InfoFormat("COM provider: {0}", rtuSettings.PortName);
+        }
+        private void InitializeSlaveList(Instance instanceConfig)
+        {
             if (instanceConfig.SlaveDeviceList != null && instanceConfig.SlaveDeviceList.Slaves != null)
             {
                 foreach (var slaveConfig in instanceConfig.SlaveDeviceList.Slaves)
@@ -99,13 +125,16 @@ namespace MineEyeConverter
             {
                 _log.Warn("No slave devices configuration found.");
             }
-
         }
-
         public List<SlaveConfiguration> DiscoverSlaves()
         {
             
             List<SlaveConfiguration> configs = new List<SlaveConfiguration>();
+            if (master == null)
+            {
+                _log.Error("Master instance is null. Cannot discover slaves.");
+                return configs;
+            }
             ushort maxHoldingAddress = 100;  // 65535 zakres adresów
             ushort holdingBlockSize = 10;
             ushort maxInputAddress = 100;
@@ -146,7 +175,7 @@ namespace MineEyeConverter
                     }
                     catch (Exception ex)
                     {
-                        _log.ErrorFormat("SlaveId: {0}: no holding register data available for block starting at {1}", slaveId, start);
+                        _log.ErrorFormat("SlaveId: {0}: no holding register data available for block starting at {1}. Exception: {2}", slaveId, start, ex);
                     }
                 }
                
@@ -178,7 +207,7 @@ namespace MineEyeConverter
                     }
                     catch (Exception ex)
                     {
-                        _log.ErrorFormat("SlaveId: {0}: no input register data available for block starting at {1}", slaveId, start);
+                        _log.ErrorFormat("SlaveId: {0}: no input register data available for block starting at {1}. Exception: {2}", slaveId, start, ex);
                     }
                 }
                 for(ushort start = 0; start < maxCoilsAddress; start += coilsBlockSize)
@@ -209,7 +238,7 @@ namespace MineEyeConverter
                     }
                     catch (Exception ex)
                     {
-                        _log.ErrorFormat("SlaveId: {0}: no coil data available for block starting at {1}", slaveId, start);
+                        _log.ErrorFormat("SlaveId: {0}: no coil data available for block starting at {1}. Exception: {2}", slaveId, start, ex);
                     }
                 }
                 
@@ -278,7 +307,7 @@ namespace MineEyeConverter
             }
         }
 
-        private Parity ParseParity(string parity)
+        private static Parity ParseParity(string parity)
         {
             return parity switch
             {
@@ -287,16 +316,16 @@ namespace MineEyeConverter
                 "Odd" => Parity.Odd,
                 "Mark" => Parity.Mark,
                 "Space" => Parity.Space,
-                _ => Parity.None,
+                _ => throw new ArgumentException($"Invalid parity value: {parity}")
             };
         }
-        private StopBits ParseStopBits(int stopBits)
+        private static StopBits ParseStopBits(int stopBits)
         {
             return stopBits switch
             {
                 1 => StopBits.One,
                 2 => StopBits.Two,
-                _ => StopBits.One,
+                _ => throw new ArgumentException($"Invalid stop bits value: {stopBits}")
             };
         }
 

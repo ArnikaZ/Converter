@@ -14,16 +14,16 @@ namespace MineEyeConverter
         /// <summary>
         /// Client class for communicating with UGS via RTU over TCP.
         /// </summary>
-        private readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly log4net.ILog _log = log4net.LogManager.GetLogger(typeof(ModbusClient));
         private readonly string _ipAddress;
         private readonly int _port;
         private readonly Dictionary<byte, ModbusSlaveDevice> _slaveDevices;
-        private TcpClient _tcpClient;
-        private TcpClientAdapter _tcpClientAdapter;
-        private IModbusMaster _master;
+        private TcpClient? _tcpClient;
+        private TcpClientAdapter? _tcpClientAdapter;
+        private IModbusMaster? _master;
         private readonly ModbusFactory _factory;
-        private CancellationTokenSource _cancellationTokenSource;
-        private Task _pollingTask;
+        private CancellationTokenSource? _cancellationTokenSource;
+        private Task? _pollingTask;
         private readonly int _pollingInterval;
         private bool _isRunning;
         private bool _isDisposed;
@@ -82,9 +82,11 @@ namespace MineEyeConverter
             {
                 _pollingTask?.Wait(5000);
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
+                _log.WarnFormat("Exception occurred while waiting for polling task to complete: {0}", ex.Message);
             }
+        
 
             DisconnectFromUGS();
 
@@ -101,7 +103,7 @@ namespace MineEyeConverter
             {
                 EnsureConnected();
 
-                var data = _master.ReadHoldingRegisters(unitId, startAddress, count);
+                var data = _master?.ReadHoldingRegisters(unitId, startAddress, count) ?? throw new InvalidOperationException("Modbus master is not initialized.");
 
                 // If slave device registered, update its data
                 if (_slaveDevices.TryGetValue(unitId, out var device))
@@ -127,7 +129,8 @@ namespace MineEyeConverter
             try
             {
                 EnsureConnected();
-
+                if (_master == null)
+                    throw new InvalidOperationException("Modbus master is not initialized");
                 _master.WriteSingleRegister(unitId, address, value);
 
                 if (_slaveDevices.TryGetValue(unitId, out var device))
@@ -152,7 +155,8 @@ namespace MineEyeConverter
             try
             {
                 EnsureConnected();
-
+                if (_master == null)
+                    throw new InvalidOperationException("Modbus master is not initialized");
                 _master.WriteMultipleRegisters(unitId, startAddress, values);
 
                 if (_slaveDevices.TryGetValue(unitId, out var device))
@@ -177,7 +181,7 @@ namespace MineEyeConverter
             {
                 EnsureConnected();
 
-                var data = _master.ReadInputRegisters(unitId, startAddress, count);
+                var data = _master?.ReadInputRegisters(unitId, startAddress, count) ?? throw new InvalidOperationException("Modbus master is not initialized");
 
                 if (_slaveDevices.TryGetValue(unitId, out var device))
                 {
@@ -203,7 +207,7 @@ namespace MineEyeConverter
             {
                 EnsureConnected();
 
-                var data = _master.ReadCoils(unitId, startAddress, count);
+                var data = _master?.ReadCoils(unitId, startAddress, count) ?? throw new InvalidOperationException("Modbus master is not initialized");
 
                 if (_slaveDevices.TryGetValue(unitId, out var device))
                 {
@@ -229,7 +233,8 @@ namespace MineEyeConverter
             try
             {
                 EnsureConnected();
-
+                if (_master == null)
+                    throw new InvalidOperationException("Modbus master is not initialized");
                 _master.WriteSingleCoil(unitId, address, value);
 
                 if (_slaveDevices.TryGetValue(unitId, out var device))
@@ -253,7 +258,8 @@ namespace MineEyeConverter
             try
             {
                 EnsureConnected();
-
+                if (_master == null)
+                    throw new InvalidOperationException("Modbus master is not initialized");
                 _master.WriteMultipleCoils(unitId, startAddress, values);
 
                 if (_slaveDevices.TryGetValue(unitId, out var device))
@@ -328,7 +334,9 @@ namespace MineEyeConverter
 
                     try
                     {
-                        var data = _master.ReadHoldingRegisters(device.UnitId, address, registersToRead);
+                        if (_master == null)
+                            throw new InvalidOperationException("Modbus master is not initialized");
+                        var data = await _master.ReadHoldingRegistersAsync(device.UnitId, address, registersToRead);
                         Array.Copy(data, 0, device.HoldingRegisters, address, registersToRead);
 
                         _log.DebugFormat("Polled holding registers for device {0}, starting at {1}, count {2}",
@@ -370,7 +378,9 @@ namespace MineEyeConverter
 
                     try
                     {
-                        var data = _master.ReadInputRegisters(device.UnitId, address, registersToRead);
+                        if (_master == null)
+                            throw new InvalidOperationException("Modbus master is not initialized");
+                        var data = await _master.ReadInputRegistersAsync(device.UnitId, address, registersToRead);
 
                         Array.Copy(data, 0, device.InputRegisters, address, registersToRead);
 
@@ -410,7 +420,9 @@ namespace MineEyeConverter
 
                     try
                     {
-                        var data = _master.ReadCoils(device.UnitId, address, coilsToRead);
+                        if (_master == null)
+                            throw new InvalidOperationException("Modbus master is not initialized");
+                        var data = await _master.ReadCoilsAsync(device.UnitId, address, coilsToRead);
                         Array.Copy(data, 0, device.Coils, address, coilsToRead);
 
                         _log.DebugFormat("Polled coils for device {0}, starting at {1}, count {2}",

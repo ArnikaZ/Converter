@@ -17,6 +17,6 @@ namespace MineEyeConverter
         public ushort Quantity { get; set; }
         public bool IsActive { get; set; }
         public ushort functionCode { get; set; }
-        public string AccessMode { get; set; }
+        public string AccessMode { get; set; } = string.Empty;
     }
 }

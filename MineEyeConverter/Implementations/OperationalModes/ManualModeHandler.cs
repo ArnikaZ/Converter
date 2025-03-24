@@ -14,9 +14,9 @@ namespace MineEyeConverter
     /// </summary>
     public class ManualModeHandler : IOperationModeHandler
     {
-        private RegisterManager registerManager;
-        private HashSet<string> _reportedErrorMessages = new HashSet<string>();
-        private readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly RegisterManager registerManager;
+        private readonly HashSet<string> _reportedErrorMessages = new HashSet<string>();
+        private readonly log4net.ILog _log = log4net.LogManager.GetLogger(typeof(ManualModeHandler));
         private readonly string filePath = "registers.xml";
         public ManualModeHandler()
         {
@@ -24,7 +24,7 @@ namespace MineEyeConverter
             registerManager.LoadFromFile(filePath);
         }
 
-        public void HandleCoilsChanged(byte slaveId, int coil, int numberOfPoints, ModbusServer tcpServer, ClientHandler rtuClient, Dictionary<byte, ModbusSlaveDevice> slaveDevices)
+        public void HandleCoilsChanged(byte slaveId, int startAddress, int numberOfPoints, ModbusServer tcpServer, ClientHandler rtuClient, Dictionary<byte, ModbusSlaveDevice> slaveDevices)
         {
             try
             {
@@ -32,7 +32,7 @@ namespace MineEyeConverter
                 var manualCoil = registerManager.Coils.FirstOrDefault(r =>
                     r.SlaveId == slaveId &&
                     r.IsActive &&
-                    (coil >= r.StartAddress && coil < r.StartAddress + r.Quantity));
+                    (startAddress >= r.StartAddress && startAddress < r.StartAddress + r.Quantity));
 
                 if (manualCoil != null)
                 {
@@ -40,14 +40,14 @@ namespace MineEyeConverter
                     bool[] values = new bool[numberOfPoints];
                     for (int i = 0; i < numberOfPoints; i++)
                     {
-                        values[i] = tcpServer.coils[coil+i];
+                        values[i] = tcpServer.coils[startAddress + i];
                     }
 
                     // if conditions are met, pass the data to the RTU
                     if (slaveDevices.ContainsKey(slaveId))
                     {
-                        rtuClient.WriteMultipleCoils(slaveId, (ushort)(coil-1), values);
-                        _log.DebugFormat("Transferred coils change to device {0}, starting address: {1}, number of points: {2}", slaveId, coil, numberOfPoints);
+                        rtuClient.WriteMultipleCoils(slaveId, (ushort)(startAddress - 1), values);
+                        _log.DebugFormat("Transferred coils change to device {0}, starting address: {1}, number of points: {2}", slaveId, startAddress, numberOfPoints);
                     }
                    
                 }
@@ -58,26 +58,26 @@ namespace MineEyeConverter
             }
         }
 
-        public void HandleHoldingRegistersChanged(byte slaveId, int register, int numberOfPoints, ModbusServer tcpServer, ClientHandler rtuClient, Dictionary<byte, ModbusSlaveDevice> slaveDevices)
+        public void HandleHoldingRegistersChanged(byte slaveId, int startAddress, int numberOfPoints, ModbusServer tcpServer, ClientHandler rtuClient, Dictionary<byte, ModbusSlaveDevice> slaveDevices)
         {
             try
             {
                 var manualRegister = registerManager.HoldingRegisters.FirstOrDefault(r =>
                     r.SlaveId == slaveId &&
                     r.IsActive &&
-                    (register >= r.StartAddress && register < r.StartAddress + r.Quantity));
+                    (startAddress >= r.StartAddress && startAddress < r.StartAddress + r.Quantity));
 
                 if (manualRegister != null)
                 {
                     ushort[] values = new ushort[numberOfPoints];
                     for (int i = 0; i < numberOfPoints; i++)
                     {
-                        values[i] = (ushort)tcpServer.holdingRegisters[register+i];
+                        values[i] = (ushort)tcpServer.holdingRegisters[startAddress + i];
                     }
 
                     if (slaveDevices.ContainsKey(slaveId))
                     {
-                        rtuClient.WriteMultipleRegisters(slaveId, (ushort)(register-1), values);
+                        rtuClient.WriteMultipleRegisters(slaveId, (ushort)(startAddress - 1), values);
                         _log.DebugFormat("Transferred holding registers change to device {0}, starting address: {1}, number of registers: {2}", slaveId, slaveId, numberOfPoints);
                     }
                    
@@ -105,12 +105,12 @@ namespace MineEyeConverter
                         server.holdingRegisters.localArray, offset + server.LastStartingAddress,
                         server.LastQuantity);
                 }
-                catch (NModbus.SlaveException ex)
+                catch (SlaveException ex)
                 {
                     string errorKey = $"Holding_{slave.UnitId}_{startAddress}_{registersToRead}";
                     if (!_reportedErrorMessages.Contains(errorKey))
                     {
-                        _log.Error($"Holding registers {startAddress}-{startAddress + registersToRead - 1} are not available for device {slave.UnitId}");
+                        _log.Error(message: $"Holding registers {startAddress}-{startAddress + registersToRead - 1} are not available for device {slave.UnitId}. Error:", ex);
                         _reportedErrorMessages.Add(errorKey);
                     }
                 }
@@ -148,7 +148,7 @@ namespace MineEyeConverter
                         string errorKey = $"Input_{slave.UnitId}_{startAddress}_{registersToRead}";
                         if (!_reportedErrorMessages.Contains(errorKey))
                         {
-                            _log.ErrorFormat($"Input registers {startAddress}-{startAddress + registersToRead - 1} are not available for device {slave.UnitId}");
+                            _log.ErrorFormat("Input registers {0}-{1} are not available for device {2}. Error: ",startAddress, startAddress + registersToRead - 1, slave.UnitId, ex);
                             _reportedErrorMessages.Add(errorKey);
                         }
                     }
@@ -180,13 +180,13 @@ namespace MineEyeConverter
                             server.coils.localArray, offset + server.LastStartingAddress,
                             server.LastQuantity);
                     }
-                    catch (NModbus.SlaveException ex)
+                    catch (SlaveException ex)
                     {
 
                         string errorKey = $"Coils{slave.UnitId}_{startAddress}_{coilsToRead}";
                         if (!_reportedErrorMessages.Contains(errorKey))
                         {
-                            _log.ErrorFormat($"Coils {startAddress}-{startAddress + coilsToRead - 1} are not available for device {slave.UnitId}");
+                            _log.ErrorFormat("Coils {0}-{1} are not available for device {2}. Error: ",startAddress, startAddress + coilsToRead - 1, slave.UnitId, ex);
                             _reportedErrorMessages.Add(errorKey);
                         }
                     }
@@ -211,7 +211,7 @@ namespace MineEyeConverter
                 var register = registerManager.HoldingRegisters.FirstOrDefault
                     (r => r.SlaveId == address && 
                     r.StartAddress == startRegister &&
-                    r.AccessMode=="W" && r.IsActive==true) ;
+                    r.AccessMode=="W" && r.IsActive) ;
                 if (register != null)
                 {
                     master.WriteSingleRegister(address, startRegister, value);
@@ -264,7 +264,7 @@ namespace MineEyeConverter
                 var register = registerManager.Coils.FirstOrDefault
                     (r => r.SlaveId == address &&
                     r.StartAddress == startRegister &&
-                    r.AccessMode == "W" && r.IsActive == true);
+                    r.AccessMode == "W" && r.IsActive);
                 if (register != null)
                 {
                     master.WriteSingleCoil(address, startRegister, value);

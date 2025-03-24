@@ -13,7 +13,7 @@ namespace MineEyeConverter
     /// </summary>
     public class TcpProvider :IProvider
     {
-        public string Ip { get; set; }
+        public string Ip { get; set; } = string.Empty;
         public int Port { get; set; }
        
     }

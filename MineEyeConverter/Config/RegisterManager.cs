@@ -43,7 +43,10 @@ namespace MineEyeConverter
             XmlSerializer serializer = new XmlSerializer(typeof(RegisterManager));
             using (StreamReader reader = new StreamReader(filePath))
             {
-                RegisterManager loaded = (RegisterManager)serializer.Deserialize(reader);
+                if (serializer.Deserialize(reader) is not RegisterManager loaded)
+                {
+                    throw new InvalidOperationException("Deserialization failed.");
+                }
                 HoldingRegisters = loaded.HoldingRegisters;
                 InputRegisters = loaded.InputRegisters;
                 Coils = loaded.Coils;

@@ -18,35 +18,37 @@ namespace MineEyeConverter
     /// </summary>
     public class ClientHandler : IDisposable
     {
-        private log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private log4net.ILog Log = log4net.LogManager.GetLogger(typeof(ClientHandler));
         
         public bool Communicate { get; set; } //flag indicating whether communication with slave devices should continue.
-        private bool _disposed;
+        private bool _disposed = false;
 
         public ICollection<ModbusSlaveDevice> SlaveList { get; set; } // collection of Modbus slave devices that this client can communicate with.
 
         private ModbusFactory factory;
 
-        private IModbusMaster master;
-        private SerialPort serialPort;
-        private SerialPortAdapter _serialPortAdapter;
+        private IModbusMaster? master;
+        private SerialPort? serialPort;
+        private SerialPortAdapter? _serialPortAdapter;
 
-        private TcpClient tcpClient;
-        private TcpClientAdapter _tcpClientAdapter;
+        private TcpClient? tcpClient;
+        private TcpClientAdapter? _tcpClientAdapter;
 
-        private TcpProvider _tcpProvider;
-        private SerialProvider _serialProvider;
+        private TcpProvider? _tcpProvider;
+        private SerialProvider? _serialProvider;
         private bool isConnected;
-        private IOperationModeHandler operationModeHandler;
+        private readonly IOperationModeHandler operationModeHandler;
 
-        private ModbusServer _server;
+        private readonly ModbusServer _server;
         public virtual IProvider DataProvider //Gets or sets the active data provider (TCP or Serial) used for communication.
         {
             get
             {
                 if (_tcpProvider != null)
                     return _tcpProvider;
-                return _serialProvider;
+                else if (_serialProvider != null)
+                    return _serialProvider;
+                throw new InvalidOperationException("No data provider has been configured");
             }
             set
             {
@@ -61,16 +63,16 @@ namespace MineEyeConverter
             }
         }
 
-        public virtual IProvider TcpDataProvider
+        public virtual IProvider? TcpDataProvider
         {
             get { return _tcpProvider; }
-            set { _tcpProvider = (TcpProvider)value; }
+            set { _tcpProvider = value as TcpProvider; }
         }
 
-        public virtual IProvider SerialDataProvider
+        public virtual IProvider? SerialDataProvider
         {
             get { return _serialProvider; }
-            set { _serialProvider = (SerialProvider)value; }
+            set { _serialProvider = value as SerialProvider; }
         }
 
       
@@ -105,7 +107,7 @@ namespace MineEyeConverter
             }
             if(Log is null)
             {
-                Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+                Log = log4net.LogManager.GetLogger(typeof(ClientHandler));
             }
             while (Communicate)
             {
@@ -331,14 +333,10 @@ namespace MineEyeConverter
                     }
                 }
 
-                if (isConnected)
+                if (isConnected && master != null)
                 {
-                    if (master != null)
-                    {
-                        operationModeHandler.WriteMultipleRegisters(master, address, startAddress, values);
-                        return true;
-                    }
-
+                    operationModeHandler.WriteMultipleRegisters(master, address, startAddress, values);
+                    return true;
                 }
                 return false;
             }
@@ -395,14 +393,10 @@ namespace MineEyeConverter
                     }
                 }
 
-                if (isConnected)
+                if (isConnected && master != null)
                 {
-                    if (master != null)
-                    {
-                        operationModeHandler.WriteSingleCoil(master, address, coilAddress, value);
-                        return true;
-                    }
-                    
+                    operationModeHandler.WriteSingleCoil(master, address, coilAddress, value);
+                    return true;
                 }
                 return false;
             }
@@ -459,13 +453,10 @@ namespace MineEyeConverter
                     }
                 }
 
-                if (isConnected)
+                if (isConnected && master!=null)
                 {
-                    if (master != null)
-                    {
-                        operationModeHandler.WriteMultipleCoils(master, address, startAddress, values);
-                        return true;
-                    }
+                      operationModeHandler.WriteMultipleCoils(master, address, startAddress, values);
+                      return true;
                     
                 }
                 return false;
@@ -477,10 +468,7 @@ namespace MineEyeConverter
             }
         }
 
-        ~ClientHandler()
-        {
-            Dispose(false);
-        }
+        
 
         private void ReleaseUnmanagedResources()
         {
@@ -491,8 +479,12 @@ namespace MineEyeConverter
             serialPort?.Close();
             _serialPortAdapter?.Dispose();
         }
-
-        private void Dispose(bool disposing)
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
                 return;
@@ -503,11 +495,10 @@ namespace MineEyeConverter
             }
             _disposed = true;
         }
-
-        public void Dispose()
+        ~ClientHandler()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            Dispose(false);
         }
+
     }
 }

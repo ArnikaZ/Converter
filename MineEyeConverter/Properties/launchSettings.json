@@ -1,7 +1,8 @@
 {
   "profiles": {
     "ConsoleApp9": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "run -name:Przenosnik16"
     }
   }
 }

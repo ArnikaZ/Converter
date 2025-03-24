@@ -21,37 +21,37 @@ namespace MineEyeConverter
     /// </summary>
     public class AutoModeHandler : IOperationModeHandler
     {
-        private readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private HashSet<string> _reportedErrorMessages = new HashSet<string>();
+       private readonly log4net.ILog _log = log4net.LogManager.GetLogger(typeof(AutoModeHandler));
+        private readonly HashSet<string> _reportedErrorMessages = new HashSet<string>();
 
-        public void HandleCoilsChanged(byte slaveId, int coil, int numberOfPoints, ModbusServer tcpServer, ClientHandler rtuClient, Dictionary<byte, ModbusSlaveDevice> slaveDevices)
+        public void HandleCoilsChanged(byte slaveId, int startAddress, int numberOfPoints, ModbusServer tcpServer, ClientHandler rtuClient, Dictionary<byte, ModbusSlaveDevice> slaveDevices)
         {
             // Fetch data from the TCP server
             bool[] values = new bool[numberOfPoints];
             for (int i = 0; i < numberOfPoints; i++)
             {
-                values[i] = tcpServer.coils[coil+i];
+                values[i] = tcpServer.coils[startAddress+i];
             }
 
             if (slaveDevices.ContainsKey(slaveId))
             {
                 // Save data to RTU device
-                rtuClient.WriteMultipleCoils(slaveId, (ushort)(coil-1), values);
-                _log.DebugFormat("Transferred coils change to device {0}, starting address: {1}, number of points: {2}", slaveId, coil, numberOfPoints);
+                rtuClient.WriteMultipleCoils(slaveId, (ushort)(startAddress-1), values);
+                _log.DebugFormat("Transferred coils change to device {0}, starting address: {1}, number of points: {2}", slaveId, startAddress, numberOfPoints);
             }
          
         }
-        public void HandleHoldingRegistersChanged(byte slaveId, int register, int numberOfPoints, ModbusServer tcpServer, ClientHandler rtuClient, Dictionary<byte, ModbusSlaveDevice> slaveDevices)
+        public void HandleHoldingRegistersChanged(byte slaveId, int startAddress, int numberOfPoints, ModbusServer tcpServer, ClientHandler rtuClient, Dictionary<byte, ModbusSlaveDevice> slaveDevices)
         {
             ushort[] values = new ushort[numberOfPoints];
             for (int i = 0; i < numberOfPoints; i++)
             {
-                values[i] = (ushort)tcpServer.holdingRegisters[register+i];
+                values[i] = (ushort)tcpServer.holdingRegisters[startAddress+i];
             }
 
             if (slaveDevices.ContainsKey(slaveId))
             {
-                rtuClient.WriteMultipleRegisters(slaveId, (ushort)(register-1), values);
+                rtuClient.WriteMultipleRegisters(slaveId, (ushort)(startAddress-1), values);
                 _log.DebugFormat("Transferred holding registers change to device {0}, starting address: {1}, number of registers: {2}", slaveId, slaveId, numberOfPoints);
             }
         }
@@ -77,7 +77,7 @@ namespace MineEyeConverter
                     string errorKey = $"Holding_{slave.UnitId}_{startAddress}_{registersToRead}";
                     if (!_reportedErrorMessages.Contains(errorKey))
                     {
-                        _log.Error($"Holding registers {startAddress}-{startAddress + registersToRead - 1} are not available for device {slave.UnitId}");
+                        _log.Error($"Holding registers {startAddress}-{startAddress + registersToRead - 1} are not available for device {slave.UnitId}", ex);
                         _reportedErrorMessages.Add(errorKey);
                     }
                 }
@@ -115,7 +115,7 @@ namespace MineEyeConverter
                         string errorKey = $"Input_{slave.UnitId}_{startAddress}_{registersToRead}";
                         if (!_reportedErrorMessages.Contains(errorKey))
                         {
-                            _log.ErrorFormat($"Input registers {startAddress}-{startAddress + registersToRead - 1} are not available for device {slave.UnitId}");
+                            _log.Error($"Input registers {startAddress}-{startAddress + registersToRead - 1} are not available for device {slave.UnitId}", ex);
                             _reportedErrorMessages.Add(errorKey);
                         }
                     }
@@ -153,7 +153,7 @@ namespace MineEyeConverter
                         string errorKey = $"Coils{slave.UnitId}_{startAddress}_{coilsToRead}";
                         if (!_reportedErrorMessages.Contains(errorKey))
                         {
-                            _log.ErrorFormat($"Coils {startAddress}-{startAddress + coilsToRead - 1} are not available for device {slave.UnitId}");
+                            _log.Error($"Coils {startAddress}-{startAddress + coilsToRead - 1} are not available for device {slave.UnitId}", ex);
                             _reportedErrorMessages.Add(errorKey);
                         }
                     }

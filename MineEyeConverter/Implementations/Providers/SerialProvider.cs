@@ -13,7 +13,7 @@ namespace MineEyeConverter
     /// </summary>
     public class SerialProvider :IProvider
     {
-        public string SerialName { get; set; }
+        public string SerialName { get; set; } = string.Empty;
         public int BaudRate { get; set; }
         public Parity PortParity { get; set; }
         public int DataBits { get; set; }

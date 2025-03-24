@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace MineEyeConverter
+namespace MineEyeConverter.Config
 {
     /// <summary>
     /// Loads a Configuration object from an XML file.
@@ -18,7 +18,7 @@ namespace MineEyeConverter
             XmlSerializer serializer = new XmlSerializer(typeof(Configuration));
             using (FileStream fs = new FileStream(filePath, FileMode.Open))
             {
-                return (Configuration)serializer.Deserialize(fs);
+                return (serializer.Deserialize(fs) as Configuration) ?? throw new InvalidOperationException("Deserialization error – null value returned");
             }
         }
     }
