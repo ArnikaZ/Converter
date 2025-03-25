@@ -68,7 +68,8 @@ namespace MineEyeConverter
 
         public void Stop()
         {
-            Server.Stop();
+            
+            Server?.Stop();
         }
 
     }

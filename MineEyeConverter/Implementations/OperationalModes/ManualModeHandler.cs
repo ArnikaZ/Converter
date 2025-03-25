@@ -102,7 +102,7 @@ namespace MineEyeConverter
                     Array.Copy(data, 0, slave.HoldingRegisters, startAddress, registersToRead);
                     int offset = slave.UnitId * 10000;
                     Array.Copy(slave.HoldingRegisters, server.LastStartingAddress,
-                        server.holdingRegisters.localArray, offset + server.LastStartingAddress,
+                        server.holdingRegisters.LocalArray, offset + server.LastStartingAddress,
                         server.LastQuantity);
                 }
                 catch (SlaveException ex)
@@ -139,7 +139,7 @@ namespace MineEyeConverter
                         Array.Copy(data, 0, slave.InputRegisters, startAddress, registersToRead);
                         int offset = slave.UnitId * 10000;
                         Array.Copy(slave.InputRegisters, server.LastStartingAddress,
-                            server.inputRegisters.localArray, offset + server.LastStartingAddress,
+                            server.inputRegisters.LocalArray, offset + server.LastStartingAddress,
                             server.LastQuantity);
                     }
                     catch (NModbus.SlaveException ex)
@@ -177,7 +177,7 @@ namespace MineEyeConverter
                         Array.Copy(data, 0, slave.Coils, startAddress, coilsToRead);
                         int offset = slave.UnitId * 10000;
                         Array.Copy(slave.Coils, server.LastStartingAddress,
-                            server.coils.localArray, offset + server.LastStartingAddress,
+                            server.coils.LocalArray, offset + server.LastStartingAddress,
                             server.LastQuantity);
                     }
                     catch (SlaveException ex)

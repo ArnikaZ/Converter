@@ -15,7 +15,7 @@ namespace MineEyeConverter
     public class RegisterManager
     {
         private static readonly Lazy<RegisterManager> _instance =
-        new Lazy<RegisterManager>(() => new RegisterManager());
+        new(() => new RegisterManager());
 
         public static RegisterManager Instance => _instance.Value;
         public byte SlaveId { get; set; }
@@ -32,25 +32,21 @@ namespace MineEyeConverter
 
         public void SaveToFile(string filePath)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(RegisterManager));
-            using (StreamWriter writer = new StreamWriter(filePath))
-            {
-                serializer.Serialize(writer, this);
-            }
+            XmlSerializer serializer = new(typeof(RegisterManager));
+            using StreamWriter writer = new(filePath);
+            serializer.Serialize(writer, this);
         }
         public void LoadFromFile(string filePath)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(RegisterManager));
-            using (StreamReader reader = new StreamReader(filePath))
+            XmlSerializer serializer = new(typeof(RegisterManager));
+            using StreamReader reader = new(filePath);
+            if (serializer.Deserialize(reader) is not RegisterManager loaded)
             {
-                if (serializer.Deserialize(reader) is not RegisterManager loaded)
-                {
-                    throw new InvalidOperationException("Deserialization failed.");
-                }
-                HoldingRegisters = loaded.HoldingRegisters;
-                InputRegisters = loaded.InputRegisters;
-                Coils = loaded.Coils;
+                throw new InvalidOperationException("Deserialization failed.");
             }
+            HoldingRegisters = loaded.HoldingRegisters;
+            InputRegisters = loaded.InputRegisters;
+            Coils = loaded.Coils;
         }
        
     }

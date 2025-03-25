@@ -41,7 +41,7 @@ namespace MineEyeConverter
             var config = Config.ConfigLoader.LoadConfiguration("config.xml");
             var instanceConfig = GetInstanceConfig(config, instanceName);
             factory = new ModbusFactory();
-            _slaveIds = new List<byte>();
+            _slaveIds = [];
             xmlFilePath = instanceName + ".xml";
 
             switch (instanceConfig.ConnectionType.ToLower())
@@ -129,7 +129,7 @@ namespace MineEyeConverter
         public List<SlaveConfiguration> DiscoverSlaves()
         {
             
-            List<SlaveConfiguration> configs = new List<SlaveConfiguration>();
+            List<SlaveConfiguration> configs = new();
             if (master == null)
             {
                 _log.Error("Master instance is null. Cannot discover slaves.");

@@ -15,7 +15,7 @@ namespace MineEyeConverter
     {
         [XmlArray("Instances")]
         [XmlArrayItem("Instance")]
-        public List<Instance> Instances { get; set; } = new List<Instance>();
+        public List<Instance> Instances { get; set; } = [];
     }
 
     public class Instance
@@ -68,7 +68,7 @@ namespace MineEyeConverter
     public class SlaveDeviceList
     {
         [XmlElement("Slave")]
-        public List<Slave> Slaves { get; set; } = new List<Slave>();
+        public List<Slave> Slaves { get; set; } = [];
     }
     public class Slave
     {
@@ -79,7 +79,7 @@ namespace MineEyeConverter
     public class ClientWhiteList
     {
         [XmlElement("Client")]
-        public List<Client> Clients { get; set; } = new List<Client>();
+        public List<Client> Clients { get; set; } = [];
         public bool CanClientRead(string ip)
         {
             return Clients.Any(c => string.Equals(c.IpAddress, ip));

@@ -101,14 +101,8 @@ namespace MineEyeConverter
         public void Start()
         {
             Communicate = true;
-            if(factory is null)
-            {
-                factory = new ModbusFactory();
-            }
-            if(Log is null)
-            {
-                Log = log4net.LogManager.GetLogger(typeof(ClientHandler));
-            }
+            factory ??= new ModbusFactory();
+            Log ??= log4net.LogManager.GetLogger(typeof(ClientHandler));
             while (Communicate)
             {
                 try

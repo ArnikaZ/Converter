@@ -26,6 +26,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.IO.Ports;
 using EasyModbus;
+using System.Linq;
 
 namespace MineEyeConverter
 {
@@ -36,28 +37,28 @@ namespace MineEyeConverter
     public class ModbusProtocol
     {
     	public enum ProtocolType { ModbusTCP = 0, ModbusUDP = 1, ModbusRTU = 2};
-        public DateTime timeStamp;
-        public bool request;
-        public bool response;
-        public UInt16 transactionIdentifier;
-        public UInt16 protocolIdentifier;
-        public UInt16 length;
-        public byte unitIdentifier;
-        public byte functionCode;
-        public UInt16 startingAdress;
-        public UInt16 startingAddressRead;
-        public UInt16 startingAddressWrite;
-        public UInt16 quantity;
-        public UInt16 quantityRead;
-        public UInt16 quantityWrite;
-        public byte byteCount;
-        public byte exceptionCode;
-        public byte errorCode;
-        public UInt16[] receiveCoilValues;
-        public UInt16[] receiveRegisterValues;
-        public Int16[] sendRegisterValues;
-        public bool[] sendCoilValues;    
-        public UInt16 crc;
+        public DateTime TimeStamp { get; set; }
+        public bool Request { get; set; }
+        public bool Response { get; set; }
+        public UInt16 TransactionIdentifier { get; set; }
+        public UInt16 ProtocolIdentifier { get; set; }
+        public UInt16 Length { get; set; }
+        public byte UnitIdentifier { get; set; }
+        public byte FunctionCode { get; set; }
+        public UInt16 StartingAdress { get; set; }
+        public UInt16 StartingAddressRead { get; set; }
+        public UInt16 StartingAddressWrite { get; set; }
+        public UInt16 Quantity { get; set; }
+        public UInt16 QuantityRead { get; set; }
+        public UInt16 QuantityWrite { get; set; }
+        public byte ByteCount { get; set; }
+        public byte ExceptionCode { get; set; }
+        public byte ErrorCode { get; set; }
+        public UInt16[]? ReceiveCoilValues { get; set; }
+        public UInt16[]? ReceiveRegisterValues { get; set; }
+        public Int16[]? SendRegisterValues { get; set; }
+        public bool[]? SendCoilValues { get; set; }    
+        public UInt16 Crc { get; set; }
     }
 #endregion
 
@@ -73,35 +74,36 @@ namespace MineEyeConverter
 #endregion
 
 #region TCPHandler class
-    public class TCPHandler
+    public class TcpHandler
     {
-        public ModbusTcpServer _tcpServer;
+        private readonly log4net.ILog _log = log4net.LogManager.GetLogger(nameof(TcpHandler));
+        public ModbusTcpServer? TcpServer { get; set; }
         public delegate void DataChanged(object networkConnectionParameter);
-        public event DataChanged dataChanged;
+        public event DataChanged? dataChanged;
 
         public delegate void NumberOfClientsChanged();
-        public event NumberOfClientsChanged numberOfClientsChanged;
+        public event NumberOfClientsChanged? numberOfClientsChanged;
 
-        TcpListener server = null;
+        readonly TcpListener? server = null;
 
 
-        private List<Client> tcpClientLastRequestList = new List<Client>();
+        private readonly List<Client> tcpClientLastRequestList = new List<Client>();
 
         public int NumberOfConnectedClients { get; set; }
 
-        public string ipAddress = null;
+        public string? ipAddress { get; set; }
 
         /// When making a server TCP listen socket, will listen to this IP address.
         public IPAddress LocalIPAddress {
             get { return localIPAddress; }
         }
-        private IPAddress localIPAddress = IPAddress.Any;
+        private readonly IPAddress localIPAddress = IPAddress.Any;
 
         /// <summary>
         /// Listen to all network interfaces.
         /// </summary>
         /// <param name="port">TCP port to listen</param>
-        public TCPHandler(int port)
+        public TcpHandler(int port)
         {
             server = new TcpListener(LocalIPAddress, port);
             server.Start();
@@ -113,7 +115,7 @@ namespace MineEyeConverter
         /// </summary>
         /// <param name="localIPAddress">IP address of network interface to listen</param>
         /// <param name="port">TCP port to listen</param>
-        public TCPHandler(IPAddress localIPAddress, int port)
+        public TcpHandler(IPAddress localIPAddress, int port)
         {
             this.localIPAddress = localIPAddress;
             server = new TcpListener(LocalIPAddress, port);
@@ -124,47 +126,60 @@ namespace MineEyeConverter
 
         private void AcceptTcpClientCallback(IAsyncResult asyncResult)
         {
-            TcpClient tcpClient = new TcpClient();
+            TcpClient? tcpClient = null;
             try
             {
+                if (server == null)
+                    return;
                 tcpClient = server.EndAcceptTcpClient(asyncResult);
                 tcpClient.ReceiveTimeout = 4000;
                 if (ipAddress != null)
                 {
-                    string ipEndpoint = tcpClient.Client.RemoteEndPoint.ToString();
-                    ipEndpoint = ipEndpoint.Split(':')[0];
-                    
-                   
-                    if (ipEndpoint != ipAddress)
+                    string? ipEndpoint = tcpClient.Client?.RemoteEndPoint?.ToString();
+                    if (ipEndpoint != null)
                     {
-                        tcpClient.Client.Disconnect(false);
-                        return;
+                        ipEndpoint = ipEndpoint.Split(':')[0];
+                        if (ipEndpoint != ipAddress)
+                        {
+                            tcpClient.Client?.Disconnect(false);
+                            return;
+                        }
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                _log.Error("Exception in AcceptTcpClientCallback", ex);
+            }
             try
             {
-                server.BeginAcceptTcpClient(AcceptTcpClientCallback, null);
-                Client client = new Client(tcpClient);
-                NetworkStream networkStream = client.NetworkStream;
-                networkStream.ReadTimeout = 4000;
-                networkStream.BeginRead(client.Buffer, 0, client.Buffer.Length, ReadCallback, client);
+                server?.BeginAcceptTcpClient(AcceptTcpClientCallback, null);
+                if (tcpClient != null)
+                {
+                    Client client = new Client(tcpClient);
+                    NetworkStream networkStream = client.NetworkStream;
+                    networkStream.ReadTimeout = 4000;
+                    networkStream.BeginRead(client.Buffer, 0, client.Buffer.Length, ReadCallback, client);
+                }
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                _log.Error("Exception in AcceptTcpClientCallback", ex);
+            }
         }
+
+        private readonly object _lockObject = new object();
 
         private int GetAndCleanNumberOfConnectedClients(Client client)
         {
-            lock (this)
+            lock (_lockObject)
             {
-                int i = 0;
                 bool objetExists = false;
-                foreach (Client clientLoop in tcpClientLastRequestList)
+                foreach (var _ in tcpClientLastRequestList.Where(clientLoop => client.Equals(clientLoop)).Select(clientLoop => new { }))
                 {
-                    if (client.Equals(clientLoop))
-                        objetExists = true;
+                    objetExists = true;
                 }
+
                 try
                 {
                     tcpClientLastRequestList.RemoveAll(delegate (Client c)
@@ -174,10 +189,12 @@ namespace MineEyeConverter
 
                         );
                 }
-                catch (Exception) { }
+                catch (Exception ex)
+                {
+                    _log.ErrorFormat("Error in GetAndCleanNumberOfConnectedClients: {0}", ex.Message);
+                }
                 if (!objetExists)
                     tcpClientLastRequestList.Add(client);
-
 
                 return tcpClientLastRequestList.Count;
             }
@@ -186,47 +203,47 @@ namespace MineEyeConverter
         private void ReadCallback(IAsyncResult asyncResult)
         {
             NetworkConnectionParameter networkConnectionParameter = new NetworkConnectionParameter();
-            Client client = asyncResult.AsyncState as Client;
+            Client? client = asyncResult.AsyncState as Client;
+            if (client == null)
+            {
+                return;
+            }
             client.Ticks = DateTime.Now.Ticks;
             NumberOfConnectedClients = GetAndCleanNumberOfConnectedClients(client);
             if (numberOfClientsChanged != null)
                 numberOfClientsChanged();
-            if (client != null)
+            int read;
+            NetworkStream? networkStream = null;
+            try
             {
-                int read;
-                NetworkStream networkStream = null;
-                try
-                {
                 networkStream = client.NetworkStream;
+                read = networkStream.EndRead(asyncResult);
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Exception in ReadCallback", ex);
+                return;
+            }
 
-                    read = networkStream.EndRead(asyncResult);
-                }
-                catch (Exception ex)
-                {
-                    return;
-                }
-
-
-                if (read == 0)
-                {
-                    //OnClientDisconnected(client.TcpClient);
-                    //connectedClients.Remove(client);
-                    return;
-                }
-                byte[] data = new byte[read];
-                Buffer.BlockCopy(client.Buffer, 0, data, 0, read);
-                networkConnectionParameter.bytes = data;
-                networkConnectionParameter.stream = networkStream;
-                networkConnectionParameter.tcpClient = client.TcpClient;
-                if (dataChanged != null)
-                    dataChanged(networkConnectionParameter);
-                try
-                {
-                    networkStream.BeginRead(client.Buffer, 0, client.Buffer.Length, ReadCallback, client);
-                }
-                catch (Exception)
-                {
-                }
+            if (read == 0)
+            {
+                return;
+            }
+            byte[] data = new byte[read];
+            Buffer.BlockCopy(client.Buffer, 0, data, 0, read);
+            networkConnectionParameter.bytes = data;
+            networkConnectionParameter.stream = networkStream;
+            networkConnectionParameter.tcpClient = client.TcpClient;
+            if (dataChanged != null)
+                dataChanged(networkConnectionParameter);
+            try
+            {
+                networkStream.BeginRead(client.Buffer, 0, client.Buffer.Length, ReadCallback, client);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it as needed
+                Console.WriteLine($"Exception in ReadCallback: {ex.Message}");
             }
         }
 
@@ -239,9 +256,12 @@ namespace MineEyeConverter
                     clientLoop.NetworkStream.Close(00);
                 }
             }
-            catch (Exception) { }
-            server.Stop();
-            
+            catch (Exception ex)
+            {
+                // Log the exception or handle it as needed
+                Console.WriteLine($"Exception in Disconnect: {ex.Message}");
+            }
+            server?.Stop();
         }
 
 
@@ -286,52 +306,40 @@ namespace MineEyeConverter
     public class ModbusServer
     {
         public bool UseWhiteList { get; set; }
-        public List<MineEyeConverter.Client> WhiteList { get; set; }
-        public IPAddress clientIp;
-        public IOperationModeHandler OperationModeHandler { get; set; }
+        public List<MineEyeConverter.Client>? WhiteList { get; set; }
+        public IPAddress? ClientIp { get; set; }
+        public IOperationModeHandler? OperationModeHandler { get; set; }
 
         
         private bool debug = false;
-        //Int32 port = 502;
         public int Port { get; set; }
-        ModbusProtocol receiveData;
-        public ModbusProtocol sendData =  new ModbusProtocol();
-        Byte[] bytes = new Byte[2100];
-        //public Int16[] _holdingRegisters = new Int16[65535];
-        public HoldingRegisters holdingRegisters;      
-        public InputRegisters inputRegisters;
-        public Coils coils;
-        public DiscreteInputs discreteInputs;
-        private int numberOfConnections = 0;
-        private bool udpFlag;
-        private bool serialFlag;
-        private int baudrate = 9600;
-        private System.IO.Ports.Parity parity = Parity.Even;
-        private System.IO.Ports.StopBits stopBits = StopBits.One;
-        private string serialPort = "COM1";
-        private SerialPort serialport;
+        public ModbusProtocol SendData { get; set; } = new ModbusProtocol();
 
-        private byte unitIdentifier;
+        public HoldingRegisters holdingRegisters { get; set; }      
+        public InputRegisters inputRegisters { get; set; }
+        public Coils coils { get; set; }
+        public DiscreteInputs discreteInputs { get; set; }
+        private int numberOfConnections = 0;
+        private string serialPort = "COM1";
+        private SerialPort? serialport;
         private ushort _lastStartingAddress;
         private ushort _lastQuantity;
         private int _functionCode;
 
-        public byte UnitIdentifierValue => unitIdentifier;
+        public byte UnitIdentifierValue => UnitIdentifier;
         public byte CurrentUnitIdentifier { get; set; }
         public ushort LastStartingAddress => _lastStartingAddress;
         public ushort LastQuantity => _lastQuantity;
         public int FunctionCode => _functionCode;
 
 
-
-        private int portIn;
-        public IPAddress ipAddressIn;
-        private UdpClient udpClient;
-        private IPEndPoint iPEndPoint;
-        private TCPHandler tcpHandler;
-        Thread listenerThread;
-        Thread clientConnectionThread;
-        private ModbusProtocol[] modbusLogData = new ModbusProtocol[100];
+        public IPAddress? IpAddressIn { get; set; }
+        private UdpClient? udpClient;
+        private IPEndPoint? iPEndPoint;
+        private TcpHandler? tcpHandler;
+        Thread? listenerThread;
+        Thread? clientConnectionThread;
+        private readonly ModbusProtocol[] modbusLogData = new ModbusProtocol[100];
         public bool FunctionCode1Disabled {get; set;}
         public bool FunctionCode2Disabled { get; set; }
         public bool FunctionCode3Disabled { get; set; }
@@ -342,11 +350,12 @@ namespace MineEyeConverter
         public bool FunctionCode16Disabled { get; set; }
         public bool FunctionCode23Disabled { get; set; }
         public bool PortChanged { get; set; }
-        object lockCoils = new object();
-        object lockHoldingRegisters = new object();
+        readonly object lockCoils = new object();
+        readonly object lockHoldingRegisters = new object();
         private volatile bool shouldStop;
 
         private IPAddress localIPAddress = IPAddress.Any;
+        private readonly log4net.ILog _log=log4net.LogManager.GetLogger(typeof(ModbusServer));
 
         /// <summary>
         /// When creating a TCP or UDP socket, the local IP address to attach to.
@@ -368,16 +377,16 @@ namespace MineEyeConverter
 
         #region events
         public delegate void CoilsChangedHandler(byte slaveId, int coil, int numberOfCoils);
-        public event CoilsChangedHandler CoilsChanged;
+        public event CoilsChangedHandler? CoilsChanged;
 
         public delegate void HoldingRegistersChangedHandler(byte slaveId, int register, int numberOfRegisters);
-        public event HoldingRegistersChangedHandler HoldingRegistersChanged;
+        public event HoldingRegistersChangedHandler? HoldingRegistersChanged;
 
         public delegate void NumberOfConnectedClientsChangedHandler();
-        public event NumberOfConnectedClientsChangedHandler NumberOfConnectedClientsChanged;
+        public event NumberOfConnectedClientsChangedHandler? NumberOfConnectedClientsChanged;
 
         public delegate void LogDataChangedHandler();
-        public event LogDataChangedHandler LogDataChanged;
+        public event LogDataChangedHandler? LogDataChanged;
         #endregion
 
         public void Listen()
@@ -389,7 +398,7 @@ namespace MineEyeConverter
 
         public void StopListening()
         {
-        	if (SerialFlag & (serialport != null))
+        	if (SerialFlag && (serialport != null))
         	{
         		if (serialport.IsOpen)
         			serialport.Close();
@@ -397,23 +406,41 @@ namespace MineEyeConverter
             }
             try
             {
-                tcpHandler.Disconnect();
-                listenerThread.Abort();
+                tcpHandler?.Disconnect();
                 
+                shouldStop = true;
+                if (listenerThread != null && listenerThread.IsAlive && !listenerThread.Join(TimeSpan.FromSeconds(3)))
+                {
+                    _log.Warn("Warning: ListenerThread did not exit gracefully");
+                }
+
+
             }
-            catch (Exception) { }
-            listenerThread.Join();
+           
+            catch (Exception ex)
+            {
+                _log.Error("Exception in ListenerThread", ex);
+            }
+           
+
             try
             {
-
-                clientConnectionThread.Abort();
+                if (clientConnectionThread != null && clientConnectionThread.IsAlive && !clientConnectionThread.Join(TimeSpan.FromSeconds(3)))
+                {
+                    _log.Warn("Warning: ClientConnectionThread did not exit gracefully");
+                }
             }
-            catch (Exception) { }
+            catch (Exception ex) 
+            {
+                _log.Error("Exception in ClientConnectionThread", ex);
+            }
         }
         
-        private void ListenerThread()
+void ListenerThread()
         {
-            if (!udpFlag & !serialFlag)
+            Byte[] bytes;
+            int portIn;
+            if (!UDPFlag && !SerialFlag)
             {
                 if (udpClient != null)
                 {
@@ -421,23 +448,27 @@ namespace MineEyeConverter
                     {
                         udpClient.Close();
                     }
-                    catch (Exception) { }
+                    catch (Exception ex)
+                    {
+    
+                        Console.WriteLine($"Exception in ListenerThread: {ex.Message}");
+                    }
                 }
-                tcpHandler = new TCPHandler(LocalIPAddress, Port);
+                tcpHandler = new TcpHandler(LocalIPAddress, Port);
                 if (debug) StoreLogData.Instance.Store($"EasyModbus Server listing for incomming data at Port {Port}, local IP {LocalIPAddress}", System.DateTime.Now);
-                tcpHandler.dataChanged += new TCPHandler.DataChanged(ProcessReceivedData);
-                tcpHandler.numberOfClientsChanged += new TCPHandler.NumberOfClientsChanged(numberOfClientsChanged);
+                tcpHandler.dataChanged += new TcpHandler.DataChanged(ProcessReceivedData);
+                tcpHandler.numberOfClientsChanged += new TcpHandler.NumberOfClientsChanged(numberOfClientsChanged);
             }
-            else if (serialFlag)
+            else if (SerialFlag)
             {
                 if (serialport == null)
                 {
                     if (debug) StoreLogData.Instance.Store("EasyModbus RTU-Server listing for incomming data at Serial Port " + serialPort, System.DateTime.Now);
                     serialport = new SerialPort();
                     serialport.PortName = serialPort;
-                    serialport.BaudRate = this.baudrate;
-                    serialport.Parity = this.parity;
-                    serialport.StopBits = stopBits;
+                    serialport.BaudRate = this.Baudrate;
+                    serialport.Parity = this.Parity;
+                    serialport.StopBits = StopBits;
                     serialport.WriteTimeout = 10000;
                     serialport.ReadTimeout = 1000;
                     serialport.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
@@ -445,51 +476,52 @@ namespace MineEyeConverter
                 }
             }
             else
-               while (!shouldStop)
-               {
-            	if (udpFlag)
-            	{
-                    if (udpClient == null | PortChanged)
+                while (!shouldStop)
+                {
+                    if (UDPFlag)
                     {
-                        IPEndPoint localEndoint = new IPEndPoint(LocalIPAddress, Port);
-                        udpClient = new UdpClient(localEndoint);
-                        if (debug) StoreLogData.Instance.Store($"EasyModbus Server listing for incomming data at Port {Port}, local IP {LocalIPAddress}", System.DateTime.Now);
-                        udpClient.Client.ReceiveTimeout = 1000;
-                        iPEndPoint = new IPEndPoint(IPAddress.Any, Port);
-                        PortChanged = false;                      
+                        if (udpClient == null || PortChanged)
+                        {
+                            IPEndPoint localEndoint = new IPEndPoint(LocalIPAddress, Port);
+                            udpClient = new UdpClient(localEndoint);
+                            if (debug) StoreLogData.Instance.Store($"EasyModbus Server listing for incomming data at Port {Port}, local IP {LocalIPAddress}", System.DateTime.Now);
+                            udpClient.Client.ReceiveTimeout = 1000;
+                            iPEndPoint = new IPEndPoint(IPAddress.Any, Port);
+                            PortChanged = false;
+                        }
+                        if (tcpHandler != null)
+                            tcpHandler.Disconnect();
+                        try
+                        {
+                            bytes = udpClient.Receive(ref iPEndPoint);
+                            portIn = iPEndPoint.Port;
+                            NetworkConnectionParameter networkConnectionParameter = new NetworkConnectionParameter();
+                            networkConnectionParameter.bytes = bytes;
+                            IpAddressIn = iPEndPoint.Address;
+                            networkConnectionParameter.portIn = portIn;
+                            networkConnectionParameter.ipAddressIn = IpAddressIn;
+                            ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessReceivedData);
+                            Thread processDataThread = new Thread(pts);
+                            processDataThread.Start(networkConnectionParameter);
+                        }
+                        catch (Exception ex)
+                        {
+                            _log.Error("Exception in ListenerThread: ", ex);
+                        }
                     }
-                    if (tcpHandler != null)
-                        tcpHandler.Disconnect();
-                    try
-                    {                       
-                        bytes = udpClient.Receive(ref iPEndPoint);
-                        portIn = iPEndPoint.Port;
-                        NetworkConnectionParameter networkConnectionParameter = new NetworkConnectionParameter();
-                        networkConnectionParameter.bytes = bytes;
-                        ipAddressIn = iPEndPoint.Address;
-                        networkConnectionParameter.portIn = portIn;
-                        networkConnectionParameter.ipAddressIn = ipAddressIn;
-                        ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessReceivedData);
-                        Thread processDataThread = new Thread(pts);
-                        processDataThread.Start(networkConnectionParameter);
-                    }
-                    catch (Exception)
-                    {                       
-                    }    
-            	}
 
                 }
         }
     
 		#region SerialHandler
-        private bool dataReceived = false;
-        private byte[] readBuffer = new byte[2094];
+      
+        private readonly byte[] readBuffer = new byte[2094];
         private DateTime lastReceive;
         private int nextSign = 0;
         private void DataReceivedHandler(object sender,
                         SerialDataReceivedEventArgs e)
         {
-            int silence = 4000 / baudrate;
+            int silence = 4000 / Baudrate;
             if ((DateTime.Now.Ticks - lastReceive.Ticks) > TimeSpan.TicksPerMillisecond*silence)
                 nextSign = 0;
 
@@ -506,8 +538,7 @@ namespace MineEyeConverter
             nextSign = numbytes+ nextSign;
             if (EasyModbus.ModbusClient.DetectValidModbusFrame(readBuffer, nextSign))
             {
-                
-                dataReceived = true;
+     
                 nextSign= 0;
 
                     NetworkConnectionParameter networkConnectionParameter = new NetworkConnectionParameter();
@@ -515,33 +546,41 @@ namespace MineEyeConverter
                     ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessReceivedData);
                     Thread processDataThread = new Thread(pts);
                     processDataThread.Start(networkConnectionParameter);
-                    dataReceived = false;
+                    
                 
             }
-            else
-                dataReceived = false;
+            
         }
 		#endregion
  
 		#region Method numberOfClientsChanged
         private void numberOfClientsChanged()
         {
-            numberOfConnections = tcpHandler.NumberOfConnectedClients;
+            if (tcpHandler != null)
+            {
+                numberOfConnections = tcpHandler.NumberOfConnectedClients;
+            }
+            
             if (NumberOfConnectedClientsChanged != null)
                 NumberOfConnectedClientsChanged();
         }
         #endregion
-        
 
-        object lockProcessReceivedData = new object();
+
+        readonly object lockProcessReceivedData = new object();
         #region Method ProcessReceivedData
-        public void ProcessReceivedData(object networkConnectionParameter)
+        public void ProcessReceivedData(object? networkConnectionParameter)
         {
+            if (networkConnectionParameter == null)
+                return;
             lock (lockProcessReceivedData)
             {
                 NetworkConnectionParameter netParam = (NetworkConnectionParameter)networkConnectionParameter;
-                clientIp = ((IPEndPoint)netParam.tcpClient.Client.RemoteEndPoint).Address;
-         
+                if (netParam.tcpClient.Client.RemoteEndPoint != null)
+                {
+                    ClientIp = ((IPEndPoint)netParam.tcpClient.Client.RemoteEndPoint).Address;
+                }
+
                 Byte[] bytes = new byte[((NetworkConnectionParameter)networkConnectionParameter).bytes.Length];
                 if (debug) StoreLogData.Instance.Store("Received Data: " + BitConverter.ToString(bytes), System.DateTime.Now);
                 NetworkStream stream = ((NetworkConnectionParameter)networkConnectionParameter).stream;
@@ -559,150 +598,152 @@ namespace MineEyeConverter
                 {
                     UInt16[] wordData = new UInt16[1];
                     byte[] byteData = new byte[2];
-                    receiveDataThread.timeStamp = DateTime.Now;
-                    receiveDataThread.request = true;
-                    if (!serialFlag)
+                    receiveDataThread.TimeStamp = DateTime.Now;
+                    receiveDataThread.Request = true;
+                    if (!SerialFlag)
                     {
                         //Lese Transaction identifier
                         byteData[1] = bytes[0];
                         byteData[0] = bytes[1];
                         Buffer.BlockCopy(byteData, 0, wordData, 0, 2);
-                        receiveDataThread.transactionIdentifier = wordData[0];
+                        receiveDataThread.TransactionIdentifier = wordData[0];
 
                         //Lese Protocol identifier
                         byteData[1] = bytes[2];
                         byteData[0] = bytes[3];
                         Buffer.BlockCopy(byteData, 0, wordData, 0, 2);
-                        receiveDataThread.protocolIdentifier = wordData[0];
+                        receiveDataThread.ProtocolIdentifier = wordData[0];
 
                         //Lese length
                         byteData[1] = bytes[4];
                         byteData[0] = bytes[5];
                         Buffer.BlockCopy(byteData, 0, wordData, 0, 2);
-                        receiveDataThread.length = wordData[0];
+                        receiveDataThread.Length = wordData[0];
                     }
 
                     //Lese unit identifier
 
-                    receiveDataThread.unitIdentifier = bytes[6 - 6 * Convert.ToInt32(serialFlag)];
-                    CurrentUnitIdentifier = receiveDataThread.unitIdentifier;
+                    receiveDataThread.UnitIdentifier = bytes[6 - 6 * Convert.ToInt32(SerialFlag)];
+                    CurrentUnitIdentifier = receiveDataThread.UnitIdentifier;
 
                     //Check UnitIdentifier
-                    if (receiveDataThread.unitIdentifier == 0)
+                    if (receiveDataThread.UnitIdentifier == 0)
                         return;
 
                     // Lese function code
-                    receiveDataThread.functionCode = bytes[7 - 6 * Convert.ToInt32(serialFlag)];
-                    _functionCode = receiveDataThread.functionCode;
+                    receiveDataThread.FunctionCode = bytes[7 - 6 * Convert.ToInt32(SerialFlag)];
+                    _functionCode = receiveDataThread.FunctionCode;
 
                     // Lese starting address 
-                    byteData[1] = bytes[8 - 6 * Convert.ToInt32(serialFlag)];
-                    byteData[0] = bytes[9 - 6 * Convert.ToInt32(serialFlag)];
+                    byteData[1] = bytes[8 - 6 * Convert.ToInt32(SerialFlag)];
+                    byteData[0] = bytes[9 - 6 * Convert.ToInt32(SerialFlag)];
                     Buffer.BlockCopy(byteData, 0, wordData, 0, 2);
-                    receiveDataThread.startingAdress = wordData[0];
+                    receiveDataThread.StartingAdress = wordData[0];
 
-                    _lastStartingAddress = receiveDataThread.startingAdress;
+                    _lastStartingAddress = receiveDataThread.StartingAdress;
 
-                    if (receiveDataThread.functionCode <= 4)
+                    if (receiveDataThread.FunctionCode <= 4)
                     {
                         // Lese quantity
-                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(serialFlag)];
-                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(serialFlag)];
+                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(SerialFlag)];
+                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(SerialFlag)];
                         Buffer.BlockCopy(byteData, 0, wordData, 0, 2);
-                        receiveDataThread.quantity = wordData[0];
-                        _lastQuantity = receiveDataThread.quantity;
+                        receiveDataThread.Quantity = wordData[0];
+                        _lastQuantity = receiveDataThread.Quantity;
                     }
 
-                    if (receiveDataThread.functionCode == 5)
+                    if (receiveDataThread.FunctionCode == 5)
                     {
-                        receiveDataThread.receiveCoilValues = new ushort[1];
+                        receiveDataThread.ReceiveCoilValues = new ushort[1];
                         // Lese Value
-                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(serialFlag)];
-                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(serialFlag)];
-                        Buffer.BlockCopy(byteData, 0, receiveDataThread.receiveCoilValues, 0, 2);
+                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(SerialFlag)];
+                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(SerialFlag)];
+                        Buffer.BlockCopy(byteData, 0, receiveDataThread.ReceiveCoilValues, 0, 2);
                     }
-                    if (receiveDataThread.functionCode == 6)
+                    if (receiveDataThread.FunctionCode == 6)
                     {
-                        receiveDataThread.receiveRegisterValues = new ushort[1];
+                        receiveDataThread.ReceiveRegisterValues = new ushort[1];
                         // Lese Value
-                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(serialFlag)];
-                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(serialFlag)];
-                        Buffer.BlockCopy(byteData, 0, receiveDataThread.receiveRegisterValues, 0, 2);
+                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(SerialFlag)];
+                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(SerialFlag)];
+                        Buffer.BlockCopy(byteData, 0, receiveDataThread.ReceiveRegisterValues, 0, 2);
                     }
-                    if (receiveDataThread.functionCode == 15)
+                    if (receiveDataThread.FunctionCode == 15)
                     {
                         // Lese quantity
-                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(serialFlag)];
-                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(serialFlag)];
+                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(SerialFlag)];
+                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(SerialFlag)];
                         Buffer.BlockCopy(byteData, 0, wordData, 0, 2);
-                        receiveDataThread.quantity = wordData[0];
+                        receiveDataThread.Quantity = wordData[0];
 
-                        receiveDataThread.byteCount = bytes[12 - 6 * Convert.ToInt32(serialFlag)];
+                        receiveDataThread.ByteCount = bytes[12 - 6 * Convert.ToInt32(SerialFlag)];
 
-                        if ((receiveDataThread.byteCount % 2) != 0)
-                            receiveDataThread.receiveCoilValues = new ushort[receiveDataThread.byteCount / 2 + 1];
+                        if ((receiveDataThread.ByteCount % 2) != 0)
+                            receiveDataThread.ReceiveCoilValues = new ushort[receiveDataThread.ByteCount / 2 + 1];
                         else
-                            receiveDataThread.receiveCoilValues = new ushort[receiveDataThread.byteCount / 2];
+                            receiveDataThread.ReceiveCoilValues = new ushort[receiveDataThread.ByteCount / 2];
                         // Lese Value
-                        Buffer.BlockCopy(bytes, 13 - 6 * Convert.ToInt32(serialFlag), receiveDataThread.receiveCoilValues, 0, receiveDataThread.byteCount);
+                        Buffer.BlockCopy(bytes, 13 - 6 * Convert.ToInt32(SerialFlag), receiveDataThread.ReceiveCoilValues, 0, receiveDataThread.ByteCount);
                     }
-                    if (receiveDataThread.functionCode == 16)
+                    if (receiveDataThread.FunctionCode == 16)
                     {
                         // Lese quantity
-                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(serialFlag)];
-                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(serialFlag)];
+                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(SerialFlag)];
+                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(SerialFlag)];
                         Buffer.BlockCopy(byteData, 0, wordData, 0, 2);
-                        receiveDataThread.quantity = wordData[0];
+                        receiveDataThread.Quantity = wordData[0];
 
-                        receiveDataThread.byteCount = bytes[12 - 6 * Convert.ToInt32(serialFlag)];
-                        receiveDataThread.receiveRegisterValues = new ushort[receiveDataThread.quantity];
-                        for (int i = 0; i < receiveDataThread.quantity; i++)
+                        receiveDataThread.ByteCount = bytes[12 - 6 * Convert.ToInt32(SerialFlag)];
+                        receiveDataThread.ReceiveRegisterValues = new ushort[receiveDataThread.Quantity];
+                        for (int i = 0; i < receiveDataThread.Quantity; i++)
                         {
                             // Lese Value
-                            byteData[1] = bytes[13 + i * 2 - 6 * Convert.ToInt32(serialFlag)];
-                            byteData[0] = bytes[14 + i * 2 - 6 * Convert.ToInt32(serialFlag)];
-                            Buffer.BlockCopy(byteData, 0, receiveDataThread.receiveRegisterValues, i * 2, 2);
+                            byteData[1] = bytes[13 + i * 2 - 6 * Convert.ToInt32(SerialFlag)];
+                            byteData[0] = bytes[14 + i * 2 - 6 * Convert.ToInt32(SerialFlag)];
+                            Buffer.BlockCopy(byteData, 0, receiveDataThread.ReceiveRegisterValues, i * 2, 2);
                         }
 
                     }
-                    if (receiveDataThread.functionCode == 23)
+                    if (receiveDataThread.FunctionCode == 23)
                     {
                         // Lese starting Address Read
-                        byteData[1] = bytes[8 - 6 * Convert.ToInt32(serialFlag)];
-                        byteData[0] = bytes[9 - 6 * Convert.ToInt32(serialFlag)];
+                        byteData[1] = bytes[8 - 6 * Convert.ToInt32(SerialFlag)];
+                        byteData[0] = bytes[9 - 6 * Convert.ToInt32(SerialFlag)];
                         Buffer.BlockCopy(byteData, 0, wordData, 0, 2);
-                        receiveDataThread.startingAddressRead = wordData[0];
+                        receiveDataThread.StartingAddressRead = wordData[0];
                         // Lese quantity Read
-                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(serialFlag)];
-                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(serialFlag)];
+                        byteData[1] = bytes[10 - 6 * Convert.ToInt32(SerialFlag)];
+                        byteData[0] = bytes[11 - 6 * Convert.ToInt32(SerialFlag)];
                         Buffer.BlockCopy(byteData, 0, wordData, 0, 2);
-                        receiveDataThread.quantityRead = wordData[0];
+                        receiveDataThread.QuantityRead = wordData[0];
                         // Lese starting Address Write
-                        byteData[1] = bytes[12 - 6 * Convert.ToInt32(serialFlag)];
-                        byteData[0] = bytes[13 - 6 * Convert.ToInt32(serialFlag)];
+                        byteData[1] = bytes[12 - 6 * Convert.ToInt32(SerialFlag)];
+                        byteData[0] = bytes[13 - 6 * Convert.ToInt32(SerialFlag)];
                         Buffer.BlockCopy(byteData, 0, wordData, 0, 2);
-                        receiveDataThread.startingAddressWrite = wordData[0];
+                        receiveDataThread.StartingAddressWrite = wordData[0];
                         // Lese quantity Write
-                        byteData[1] = bytes[14 - 6 * Convert.ToInt32(serialFlag)];
-                        byteData[0] = bytes[15 - 6 * Convert.ToInt32(serialFlag)];
+                        byteData[1] = bytes[14 - 6 * Convert.ToInt32(SerialFlag)];
+                        byteData[0] = bytes[15 - 6 * Convert.ToInt32(SerialFlag)];
                         Buffer.BlockCopy(byteData, 0, wordData, 0, 2);
-                        receiveDataThread.quantityWrite = wordData[0];
+                        receiveDataThread.QuantityWrite = wordData[0];
 
-                        receiveDataThread.byteCount = bytes[16 - 6 * Convert.ToInt32(serialFlag)];
-                        receiveDataThread.receiveRegisterValues = new ushort[receiveDataThread.quantityWrite];
-                        for (int i = 0; i < receiveDataThread.quantityWrite; i++)
+                        receiveDataThread.ByteCount = bytes[16 - 6 * Convert.ToInt32(SerialFlag)];
+                        receiveDataThread.ReceiveRegisterValues = new ushort[receiveDataThread.QuantityWrite];
+                        for (int i = 0; i < receiveDataThread.QuantityWrite; i++)
                         {
                             // Lese Value
-                            byteData[1] = bytes[17 + i * 2 - 6 * Convert.ToInt32(serialFlag)];
-                            byteData[0] = bytes[18 + i * 2 - 6 * Convert.ToInt32(serialFlag)];
-                            Buffer.BlockCopy(byteData, 0, receiveDataThread.receiveRegisterValues, i * 2, 2);
+                            byteData[1] = bytes[17 + i * 2 - 6 * Convert.ToInt32(SerialFlag)];
+                            byteData[0] = bytes[18 + i * 2 - 6 * Convert.ToInt32(SerialFlag)];
+                            Buffer.BlockCopy(byteData, 0, receiveDataThread.ReceiveRegisterValues, i * 2, 2);
                         }
                     }
                 }
                 catch (Exception exc)
-                { }
+                {
+                    _log.Error("Exception in ProcessReceivedData", exc);
+                }
+                
                 this.CreateAnswer(receiveDataThread, sendDataThread, stream, portIn, ipAddressIn);
-                //this.sendAnswer();
                 this.CreateLogData(receiveDataThread, sendDataThread);
 
                 if (LogDataChanged != null)
@@ -729,7 +770,7 @@ namespace MineEyeConverter
             }
 
             string clientIpStr = clientIp.ToString();
-            var client = WhiteList.FirstOrDefault(c => c.IpAddress == clientIpStr);
+            var client = WhiteList?.FirstOrDefault(c => c.IpAddress == clientIpStr);
             if (client == null)
                 return false; // client is not on the white list
 
@@ -743,35 +784,32 @@ namespace MineEyeConverter
         private void CreateAnswer(ModbusProtocol receiveData, ModbusProtocol sendData, NetworkStream stream, int portIn, IPAddress ipAddressIn)
         {
             
-            if (!IsClientAuthorized(clientIp, receiveData.functionCode))
+            if (ClientIp !=null && !IsClientAuthorized(ClientIp, receiveData.FunctionCode))
             {
                 // if client is not on the white list or does not have permissions – sending exception message
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 0x01; 
-                sendData.length = 0x03; 
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 0x01; 
+                sendData.Length = 0x03; 
 
-                sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                 return;
             }
             
-            if (OperationModeHandler is ManualModeHandler)
+            if (OperationModeHandler is ManualModeHandler && !IsRegisterDefined(receiveData))
             {
-                //for manual mode if register is not defind
-                if (!IsRegisterDefined(receiveData))
-                {
                     // odpowiedź exception:
-                    sendData.errorCode = (byte)(receiveData.functionCode | 0x80);
-                    sendData.exceptionCode = 0x02; // Illegal Data Address
-                    sendData.length = 0x03; 
+                    sendData.ErrorCode = (byte)(receiveData.FunctionCode | 0x80);
+                    sendData.ExceptionCode = 0x02; // Illegal Data Address
+                    sendData.Length = 0x03; 
 
-                    sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                    sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                     return;
-                }
+                
             }
                       
             
 
-            switch (receiveData.functionCode)
+            switch (receiveData.FunctionCode)
             {
                 // Read Coils
                 case 1:
@@ -779,9 +817,9 @@ namespace MineEyeConverter
                         this.ReadCoils(receiveData, sendData, stream, portIn, ipAddressIn);
                     else
                     {
-                        sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                        sendData.exceptionCode = 1;
-                        sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                        sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                        sendData.ExceptionCode = 1;
+                        sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                     }
                     break;
                 // Read Input Registers
@@ -790,9 +828,9 @@ namespace MineEyeConverter
                         this.ReadDiscreteInputs(receiveData, sendData, stream, portIn, ipAddressIn);
                     else
                     {
-                        sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                        sendData.exceptionCode = 1;
-                        sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                        sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                        sendData.ExceptionCode = 1;
+                        sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                     }
                     
                     break;
@@ -802,9 +840,9 @@ namespace MineEyeConverter
                         this.ReadHoldingRegisters(receiveData, sendData, stream, portIn, ipAddressIn);
                     else
                     {
-                        sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                        sendData.exceptionCode = 1;
-                        sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                        sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                        sendData.ExceptionCode = 1;
+                        sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                     }
                     
                     break;
@@ -814,9 +852,9 @@ namespace MineEyeConverter
                         this.ReadInputRegisters(receiveData, sendData, stream, portIn, ipAddressIn);
                     else
                     {
-                        sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                        sendData.exceptionCode = 1;
-                        sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                        sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                        sendData.ExceptionCode = 1;
+                        sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                     }
                     
                     break;
@@ -826,9 +864,9 @@ namespace MineEyeConverter
                         this.WriteSingleCoil(receiveData, sendData, stream, portIn, ipAddressIn);
                     else
                     {
-                        sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                        sendData.exceptionCode = 1;
-                        sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                        sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                        sendData.ExceptionCode = 1;
+                        sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                     }
                     
                     break;
@@ -838,9 +876,9 @@ namespace MineEyeConverter
                         this.WriteSingleRegister(receiveData, sendData, stream, portIn, ipAddressIn);
                     else
                     {
-                        sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                        sendData.exceptionCode = 1;
-                        sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                        sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                        sendData.ExceptionCode = 1;
+                        sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                     }
                     
                         break;
@@ -850,9 +888,9 @@ namespace MineEyeConverter
                             this.WriteMultipleCoils(receiveData, sendData, stream, portIn, ipAddressIn);
                         else
                         {
-                            sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                            sendData.exceptionCode = 1;
-                            sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                            sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                            sendData.ExceptionCode = 1;
+                            sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                         }
 
                         break;
@@ -862,9 +900,9 @@ namespace MineEyeConverter
                             this.WriteMultipleRegisters(receiveData, sendData, stream, portIn, ipAddressIn);
                         else
                         {
-                            sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                            sendData.exceptionCode = 1;
-                            sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                            sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                            sendData.ExceptionCode = 1;
+                            sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                         }
 
                         break;
@@ -874,32 +912,32 @@ namespace MineEyeConverter
                             this.ReadWriteMultipleRegisters(receiveData, sendData, stream, portIn, ipAddressIn);
                         else
                         {
-                            sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                            sendData.exceptionCode = 1;
-                            sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                            sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                            sendData.ExceptionCode = 1;
+                            sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                         }
 
                         break;
                 // Error: Function Code not supported
-                default: sendData.errorCode = (byte) (receiveData.functionCode + 0x80);
-                        sendData.exceptionCode = 1;
-                        sendException(sendData.errorCode, sendData.exceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
+                default: sendData.ErrorCode = (byte) (receiveData.FunctionCode + 0x80);
+                        sendData.ExceptionCode = 1;
+                        sendException(sendData.ErrorCode, sendData.ExceptionCode, receiveData, sendData, stream, portIn, ipAddressIn);
                         break;
             }
-            sendData.timeStamp = DateTime.Now;
+            sendData.TimeStamp = DateTime.Now;
         }
         
-        private bool IsRegisterDefined(ModbusProtocol receiveData)
+        private static bool IsRegisterDefined(ModbusProtocol receiveData)
         {
             var rm = RegisterManager.Instance;
 
-            if (receiveData.functionCode == 3)
+            if (receiveData.FunctionCode == 3)
             {
-                for (ushort i = 0; i < receiveData.quantity; i++)
+                for (ushort i = 0; i < receiveData.Quantity; i++)
                 {
-                    ushort currentAddress = (ushort)(receiveData.startingAdress + i);
+                    ushort currentAddress = (ushort)(receiveData.StartingAdress + i);
                     var register = rm.HoldingRegisters.FirstOrDefault(
-                        r => r.SlaveId == receiveData.unitIdentifier &&
+                        r => r.SlaveId == receiveData.UnitIdentifier &&
                              currentAddress >= r.StartAddress &&
                              currentAddress < r.StartAddress + r.Quantity &&
                              r.IsActive);
@@ -912,13 +950,13 @@ namespace MineEyeConverter
                 return true;
             }
 
-            if (receiveData.functionCode == 6 || receiveData.functionCode == 16)
+            if (receiveData.FunctionCode == 6 || receiveData.FunctionCode == 16)
             {
-                for (ushort i = 0; i < receiveData.quantity; i++)
+                for (ushort i = 0; i < receiveData.Quantity; i++)
                 {
-                    ushort currentAddress = (ushort)(receiveData.startingAdress + i);
+                    ushort currentAddress = (ushort)(receiveData.StartingAdress + i);
                     var register = rm.HoldingRegisters.FirstOrDefault(
-                        r => r.SlaveId == receiveData.unitIdentifier &&
+                        r => r.SlaveId == receiveData.UnitIdentifier &&
                              currentAddress >= r.StartAddress &&
                              currentAddress < r.StartAddress + r.Quantity &&
                              r.AccessMode == "W" &&
@@ -931,13 +969,13 @@ namespace MineEyeConverter
                 }
                 return true;
             }
-            else if (receiveData.functionCode == 4)
+            else if (receiveData.FunctionCode == 4)
             {
-                for (ushort i = 0; i < receiveData.quantity; i++)
+                for (ushort i = 0; i < receiveData.Quantity; i++)
                 {
-                    ushort currentAddress = (ushort)(receiveData.startingAdress + i);
+                    ushort currentAddress = (ushort)(receiveData.StartingAdress + i);
                     var register = rm.InputRegisters.FirstOrDefault(
-                        r => r.SlaveId == receiveData.unitIdentifier &&
+                        r => r.SlaveId == receiveData.UnitIdentifier &&
                              currentAddress >= r.StartAddress &&
                              currentAddress < r.StartAddress + r.Quantity &&
                              r.IsActive);
@@ -950,13 +988,13 @@ namespace MineEyeConverter
                 return true;
             }
 
-            else if (receiveData.functionCode == 1)
+            else if (receiveData.FunctionCode == 1)
             {
-                for (ushort i = 0; i < receiveData.quantity; i++)
+                for (ushort i = 0; i < receiveData.Quantity; i++)
                 {
-                    ushort currentAddress = (ushort)(receiveData.startingAdress + i);
+                    ushort currentAddress = (ushort)(receiveData.StartingAdress + i);
                     var register = rm.Coils.FirstOrDefault(
-                        r => r.SlaveId == receiveData.unitIdentifier &&
+                        r => r.SlaveId == receiveData.UnitIdentifier &&
                              currentAddress >= r.StartAddress &&
                              currentAddress < r.StartAddress + r.Quantity &&
                              r.IsActive);
@@ -969,13 +1007,13 @@ namespace MineEyeConverter
                 return true;
             }
        
-            else if(receiveData.functionCode==5 || receiveData.functionCode == 15)
+            else if(receiveData.FunctionCode==5 || receiveData.FunctionCode == 15)
             {
-                for (ushort i = 0; i < receiveData.quantity; i++)
+                for (ushort i = 0; i < receiveData.Quantity; i++)
                 {
-                    ushort currentAddress = (ushort)(receiveData.startingAdress + i);
+                    ushort currentAddress = (ushort)(receiveData.StartingAdress + i);
                     var register = rm.Coils.FirstOrDefault(
-                        r => r.SlaveId == receiveData.unitIdentifier &&
+                        r => r.SlaveId == receiveData.UnitIdentifier &&
                              currentAddress >= r.StartAddress &&
                              currentAddress < r.StartAddress + r.Quantity &&
                              r.AccessMode == "W" &&
@@ -996,111 +1034,110 @@ namespace MineEyeConverter
 
         private void ReadCoils(ModbusProtocol receiveData, ModbusProtocol sendData, NetworkStream stream, int portIn, IPAddress ipAddressIn)
         {
-            sendData.response = true;
+            sendData.Response = true;
 
-            sendData.transactionIdentifier = receiveData.transactionIdentifier;
-            sendData.protocolIdentifier = receiveData.protocolIdentifier;
+            sendData.TransactionIdentifier = receiveData.TransactionIdentifier;
+            sendData.ProtocolIdentifier = receiveData.ProtocolIdentifier;
 
-            sendData.unitIdentifier = receiveData.unitIdentifier;
-            sendData.functionCode = receiveData.functionCode;
-            if ((receiveData.quantity < 1) | (receiveData.quantity > 0x07D0))  //Invalid quantity
+            sendData.UnitIdentifier = receiveData.UnitIdentifier;
+            sendData.FunctionCode = receiveData.FunctionCode;
+            if ((receiveData.Quantity < 1) || (receiveData.Quantity > 0x07D0))  //Invalid quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 3;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 3;
             }
-            if (((receiveData.startingAdress + 1 + receiveData.quantity) > 65535) | (receiveData.startingAdress < 0))     //Invalid Starting adress or Starting address + quantity
+            if (((receiveData.StartingAdress + 1 + receiveData.Quantity) > 65535) || (receiveData.StartingAdress < 0))     //Invalid Starting adress or Starting address + quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 2;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 2;
             }
-            if (sendData.exceptionCode == 0)
+            if (sendData.ExceptionCode == 0)
             {
-                if ((receiveData.quantity % 8) == 0)
-                    sendData.byteCount = (byte)(receiveData.quantity / 8);
+                if ((receiveData.Quantity % 8) == 0)
+                    sendData.ByteCount = (byte)(receiveData.Quantity / 8);
                 else
-                    sendData.byteCount = (byte)(receiveData.quantity / 8 + 1);
+                    sendData.ByteCount = (byte)(receiveData.Quantity / 8 + 1);
 
-                sendData.sendCoilValues = new bool[receiveData.quantity];
+                sendData.SendCoilValues = new bool[receiveData.Quantity];
                 lock (lockCoils)
                 {
-                    int offset = receiveData.unitIdentifier * 10000;
-                    Buffer.BlockCopy(coils.localArray,
-                        offset + receiveData.startingAdress,
-                        sendData.sendCoilValues, 0,
-                        receiveData.quantity);
+                    int offset = receiveData.UnitIdentifier * 10000;
+                    Buffer.BlockCopy(coils.LocalArray,
+                        offset + receiveData.StartingAdress,
+                        sendData.SendCoilValues, 0,
+                        receiveData.Quantity);
                 }
-                   // Array.Copy(coils.localArray, receiveData.startingAdress + 1, sendData.sendCoilValues, 0, receiveData.quantity);
             }
             if (true)
             {
                 Byte[] data;
 
-                if (sendData.exceptionCode > 0)
-                	data = new byte[9 + 2*Convert.ToInt32(serialFlag)];
+                if (sendData.ExceptionCode > 0)
+                	data = new byte[9 + 2*Convert.ToInt32(SerialFlag)];
                 else
-                   	data = new byte[9 + sendData.byteCount+ 2*Convert.ToInt32(serialFlag)];
-              
-                Byte[] byteData = new byte[2];
+                   	data = new byte[9 + sendData.ByteCount+ 2*Convert.ToInt32(SerialFlag)];
 
-                sendData.length = (byte)(data.Length - 6);
+                Byte[] byteData;
+
+                sendData.Length = (byte)(data.Length - 6);
 
                 //Send Transaction identifier
-                byteData = BitConverter.GetBytes((int)sendData.transactionIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.TransactionIdentifier);
                 data[0] = byteData[1];
                 data[1] = byteData[0];
 
                 //Send Protocol identifier
-                byteData = BitConverter.GetBytes((int)sendData.protocolIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.ProtocolIdentifier);
                 data[2] = byteData[1];
                 data[3] = byteData[0];
 
                 //Send length
-                byteData = BitConverter.GetBytes((int)sendData.length);
+                byteData = BitConverter.GetBytes((int)sendData.Length);
                 data[4] = byteData[1];
                 data[5] = byteData[0];
                 //Unit Identifier
-                data[6] = sendData.unitIdentifier;
+                data[6] = sendData.UnitIdentifier;
 
                 //Function Code
-                data[7] = sendData.functionCode;
+                data[7] = sendData.FunctionCode;
 
                 //ByteCount
-                data[8] = sendData.byteCount;
+                data[8] = sendData.ByteCount;
 
-                if (sendData.exceptionCode > 0)
+                if (sendData.ExceptionCode > 0)
                 {
-                    data[7] = sendData.errorCode;
-                    data[8] = sendData.exceptionCode;
-                    sendData.sendCoilValues = null;
+                    data[7] = sendData.ErrorCode;
+                    data[8] = sendData.ExceptionCode;
+                    sendData.SendCoilValues = null;
                 }
 
-                if (sendData.sendCoilValues != null)
-                    for (int i = 0; i < (sendData.byteCount); i++)
+                if (sendData.SendCoilValues != null)
+                    for (int i = 0; i < (sendData.ByteCount); i++)
                     {
                         byteData = new byte[2];
                         for (int j = 0; j < 8; j++)
                         {
 
                             byte boolValue;
-                            if (sendData.sendCoilValues[i * 8 + j] == true)
+                            if (sendData.SendCoilValues[i * 8 + j])
                                 boolValue = 1;
                             else
                                 boolValue = 0;
                             byteData[1] = (byte)((byteData[1]) | (boolValue << j));
-                            if ((i * 8 + j + 1) >= sendData.sendCoilValues.Length)
+                            if ((i * 8 + j + 1) >= sendData.SendCoilValues.Length)
                                 break;
                         }
                         data[9 + i] = byteData[1];
                     }
                 try
                 {
-                    if (serialFlag)
+                    if (SerialFlag && serialport!=null)
                     {
                         if (!serialport.IsOpen)
                             throw new EasyModbus.Exceptions.SerialPortNotOpenedException("serial port not opened");
                         //Create CRC
-                        sendData.crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
-                        byteData = BitConverter.GetBytes((int)sendData.crc);
+                        sendData.Crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
+                        byteData = BitConverter.GetBytes((int)sendData.Crc);
                         data[data.Length - 2] = byteData[0];
                         data[data.Length - 1] = byteData[1];
                         serialport.Write(data, 6, data.Length - 6);
@@ -1111,12 +1148,15 @@ namespace MineEyeConverter
                             if (debug) StoreLogData.Instance.Store("Send Serial-Data: " + BitConverter.ToString(debugData), System.DateTime.Now);
                         }
                     }
-                    else if (udpFlag)
+                    else if (UDPFlag)
                     {
-                        //UdpClient udpClient = new UdpClient();
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
                         if (debug) StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(data), System.DateTime.Now);
-                        udpClient.Send(data, data.Length, endPoint);
+                        if (udpClient != null)
+                        {
+                            udpClient.Send(data, data.Length, endPoint);
+                        }
+                        
 
                     }
                     else
@@ -1125,95 +1165,98 @@ namespace MineEyeConverter
                         if (debug) StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(data), System.DateTime.Now);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) 
+                {
+                    _log.Error("Error in ReadCoils", ex);
+                }
             }  
         }
 
         private void ReadDiscreteInputs(ModbusProtocol receiveData, ModbusProtocol sendData, NetworkStream stream, int portIn, IPAddress ipAddressIn)
         {
-            sendData.response = true;
+            sendData.Response = true;
 
-            sendData.transactionIdentifier = receiveData.transactionIdentifier;
-            sendData.protocolIdentifier = receiveData.protocolIdentifier;
+            sendData.TransactionIdentifier = receiveData.TransactionIdentifier;
+            sendData.ProtocolIdentifier = receiveData.ProtocolIdentifier;
 
-            sendData.unitIdentifier = receiveData.unitIdentifier;
-            sendData.functionCode = receiveData.functionCode;
-            if ((receiveData.quantity < 1) | (receiveData.quantity > 0x07D0))  //Invalid quantity
+            sendData.UnitIdentifier = receiveData.UnitIdentifier;
+            sendData.FunctionCode = receiveData.FunctionCode;
+            if ((receiveData.Quantity < 1) || (receiveData.Quantity > 0x07D0))  //Invalid quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 3;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 3;
             }
-            if (((receiveData.startingAdress + 1 + receiveData.quantity) > 65535) | (receiveData.startingAdress < 0))   //Invalid Starting adress or Starting address + quantity
+            if (((receiveData.StartingAdress + 1 + receiveData.Quantity) > 65535) || (receiveData.StartingAdress < 0))   //Invalid Starting adress or Starting address + quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 2;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 2;
             }
-            if (sendData.exceptionCode == 0)
+            if (sendData.ExceptionCode == 0)
             {
-                if ((receiveData.quantity % 8) == 0)
-                    sendData.byteCount = (byte)(receiveData.quantity / 8);
+                if ((receiveData.Quantity % 8) == 0)
+                    sendData.ByteCount = (byte)(receiveData.Quantity / 8);
                 else
-                    sendData.byteCount = (byte)(receiveData.quantity / 8 + 1);
+                    sendData.ByteCount = (byte)(receiveData.Quantity / 8 + 1);
 
-                sendData.sendCoilValues = new bool[receiveData.quantity];
-                Array.Copy(discreteInputs.localArray, receiveData.startingAdress + 1, sendData.sendCoilValues, 0, receiveData.quantity);
+                sendData.SendCoilValues = new bool[receiveData.Quantity];
+                Array.Copy(discreteInputs.LocalArray, receiveData.StartingAdress + 1, sendData.SendCoilValues, 0, receiveData.Quantity);
             }
             if (true)
             {
                 Byte[] data;
-                if (sendData.exceptionCode > 0)
-                    data = new byte[9 + 2 * Convert.ToInt32(serialFlag)];
+                if (sendData.ExceptionCode > 0)
+                    data = new byte[9 + 2 * Convert.ToInt32(SerialFlag)];
                 else
-                    data = new byte[9 + sendData.byteCount + 2 * Convert.ToInt32(serialFlag)];
-                Byte[] byteData = new byte[2];
-                sendData.length = (byte)(data.Length - 6);
+                    data = new byte[9 + sendData.ByteCount + 2 * Convert.ToInt32(SerialFlag)];
+                Byte[] byteData;
+                sendData.Length = (byte)(data.Length - 6);
 
                 //Send Transaction identifier
-                byteData = BitConverter.GetBytes((int)sendData.transactionIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.TransactionIdentifier);
                 data[0] = byteData[1];
                 data[1] = byteData[0];
 
                 //Send Protocol identifier
-                byteData = BitConverter.GetBytes((int)sendData.protocolIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.ProtocolIdentifier);
                 data[2] = byteData[1];
                 data[3] = byteData[0];
 
                 //Send length
-                byteData = BitConverter.GetBytes((int)sendData.length);
+                byteData = BitConverter.GetBytes((int)sendData.Length);
                 data[4] = byteData[1];
                 data[5] = byteData[0];
 
                 //Unit Identifier
-                data[6] = sendData.unitIdentifier;
+                data[6] = sendData.UnitIdentifier;
 
                 //Function Code
-                data[7] = sendData.functionCode;
+                data[7] = sendData.FunctionCode;
 
                 //ByteCount
-                data[8] = sendData.byteCount;
+                data[8] = sendData.ByteCount;
 
 
-                if (sendData.exceptionCode > 0)
+                if (sendData.ExceptionCode > 0)
                 {
-                    data[7] = sendData.errorCode;
-                    data[8] = sendData.exceptionCode;
-                    sendData.sendCoilValues = null;
+                    data[7] = sendData.ErrorCode;
+                    data[8] = sendData.ExceptionCode;
+                    sendData.SendCoilValues = null;
                 }
 
-                if (sendData.sendCoilValues != null)
-                    for (int i = 0; i < (sendData.byteCount); i++)
+                if (sendData.SendCoilValues != null)
+                    for (int i = 0; i < (sendData.ByteCount); i++)
                     {
                         byteData = new byte[2];
                         for (int j = 0; j < 8; j++)
                         {
 
                             byte boolValue;
-                            if (sendData.sendCoilValues[i * 8 + j] == true)
+                            if (sendData.SendCoilValues[i * 8 + j])
                                 boolValue = 1;
                             else
                                 boolValue = 0;
                             byteData[1] = (byte)((byteData[1]) | (boolValue << j));
-                            if ((i * 8 + j + 1) >= sendData.sendCoilValues.Length)
+                            if ((i * 8 + j + 1) >= sendData.SendCoilValues.Length)
                                 break;
                         }
                         data[9 + i] = byteData[1];
@@ -1221,13 +1264,13 @@ namespace MineEyeConverter
 
                 try
                 {
-                    if (serialFlag)
+                    if (SerialFlag && serialport!=null)
                     {
                         if (!serialport.IsOpen)
                             throw new EasyModbus.Exceptions.SerialPortNotOpenedException("serial port not opened");
                         //Create CRC
-                        sendData.crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
-                        byteData = BitConverter.GetBytes((int)sendData.crc);
+                        sendData.Crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
+                        byteData = BitConverter.GetBytes((int)sendData.Crc);
                         data[data.Length - 2] = byteData[0];
                         data[data.Length - 1] = byteData[1];
                         serialport.Write(data, 6, data.Length - 6);
@@ -1238,11 +1281,14 @@ namespace MineEyeConverter
                             if (debug) StoreLogData.Instance.Store("Send Serial-Data: " + BitConverter.ToString(debugData), System.DateTime.Now);
                         }
                     }
-                    else if (udpFlag)
+                    else if (UDPFlag)
                     {
-                        //UdpClient udpClient = new UdpClient();
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(data, data.Length, endPoint);
+                        if (udpClient != null)
+                        {
+                            udpClient.Send(data, data.Length, endPoint);
+                        }
+                        
 
                     }
                     else
@@ -1251,108 +1297,111 @@ namespace MineEyeConverter
                         if(debug) StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(data), System.DateTime.Now);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) 
+                {
+                    _log.Error("Error in ReadDiscreteInputs", ex);
+                }
             }
         }
 
         private void ReadHoldingRegisters(ModbusProtocol receiveData, ModbusProtocol sendData, NetworkStream stream, int portIn, IPAddress ipAddressIn)
         {
             
-            sendData.response = true;
+            sendData.Response = true;
 
-            sendData.transactionIdentifier = receiveData.transactionIdentifier;
-            sendData.protocolIdentifier = receiveData.protocolIdentifier;
+            sendData.TransactionIdentifier = receiveData.TransactionIdentifier;
+            sendData.ProtocolIdentifier = receiveData.ProtocolIdentifier;
 
-            sendData.unitIdentifier = receiveData.unitIdentifier;
-            sendData.functionCode = receiveData.functionCode;
-            if ((receiveData.quantity < 1) | (receiveData.quantity > 0x007D))  //Invalid quantity
+            sendData.UnitIdentifier = receiveData.UnitIdentifier;
+            sendData.FunctionCode = receiveData.FunctionCode;
+            if ((receiveData.Quantity < 1) || (receiveData.Quantity > 0x007D))  //Invalid quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 3;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 3;
             }
-            if (((receiveData.startingAdress + 1 + receiveData.quantity) > 65535)  | (receiveData.startingAdress < 0))   //Invalid Starting adress or Starting address + quantity
+            if (((receiveData.StartingAdress + 1 + receiveData.Quantity) > 65535)  || (receiveData.StartingAdress < 0))   //Invalid Starting adress or Starting address + quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 2;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 2;
             }
-            if (sendData.exceptionCode == 0)
+            if (sendData.ExceptionCode == 0)
             {
-                sendData.byteCount = (byte)(2 * receiveData.quantity);
-                sendData.sendRegisterValues = new Int16[receiveData.quantity];
+                sendData.ByteCount = (byte)(2 * receiveData.Quantity);
+                sendData.SendRegisterValues = new Int16[receiveData.Quantity];
                 lock (lockHoldingRegisters)
                 {
-                    int offset = receiveData.unitIdentifier * 10000;
-                    Buffer.BlockCopy(holdingRegisters.localArray,
-                        (offset + receiveData.startingAdress) * 2 ,
-                        sendData.sendRegisterValues, 0,
-                        receiveData.quantity * 2);
+                    int offset = receiveData.UnitIdentifier * 10000;
+                    Buffer.BlockCopy(holdingRegisters.LocalArray,
+                        (offset + receiveData.StartingAdress) * 2 ,
+                        sendData.SendRegisterValues, 0,
+                        receiveData.Quantity * 2);
                 }
-                   // Buffer.BlockCopy(holdingRegisters.localArray, receiveData.startingAdress * 2 + 2, sendData.sendRegisterValues, 0, receiveData.quantity * 2);
+                   
                 
             }
-                if (sendData.exceptionCode > 0)
-                    sendData.length = 0x03;
+                if (sendData.ExceptionCode > 0)
+                    sendData.Length = 0x03;
                 else
-                    sendData.length = (ushort)(0x03 + sendData.byteCount);
+                    sendData.Length = (ushort)(0x03 + sendData.ByteCount);
             
             if (true)
             {
                 Byte[] data;
-                if (sendData.exceptionCode > 0)
-                    data = new byte[9 + 2 * Convert.ToInt32(serialFlag)];
+                if (sendData.ExceptionCode > 0)
+                    data = new byte[9 + 2 * Convert.ToInt32(SerialFlag)];
                 else
-                    data = new byte[9 + sendData.byteCount + 2 * Convert.ToInt32(serialFlag)];
-                Byte[] byteData = new byte[2];
-                sendData.length = (byte)(data.Length - 6);
+                    data = new byte[9 + sendData.ByteCount + 2 * Convert.ToInt32(SerialFlag)];
+                Byte[] byteData;
+                sendData.Length = (byte)(data.Length - 6);
 
                 //Send Transaction identifier
-                byteData = BitConverter.GetBytes((int)sendData.transactionIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.TransactionIdentifier);
                 data[0] = byteData[1];
                 data[1] = byteData[0];
 
                 //Send Protocol identifier
-                byteData = BitConverter.GetBytes((int)sendData.protocolIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.ProtocolIdentifier);
                 data[2] = byteData[1];
                 data[3] = byteData[0];
 
                 //Send length
-                byteData = BitConverter.GetBytes((int)sendData.length);
+                byteData = BitConverter.GetBytes((int)sendData.Length);
                 data[4] = byteData[1];
                 data[5] = byteData[0];
 
                 //Unit Identifier
-                data[6] = sendData.unitIdentifier;
+                data[6] = sendData.UnitIdentifier;
 
                 //Function Code
-                data[7] = sendData.functionCode;
+                data[7] = sendData.FunctionCode;
 
                 //ByteCount
-                data[8] = sendData.byteCount;
+                data[8] = sendData.ByteCount;
 
-                if (sendData.exceptionCode > 0)
+                if (sendData.ExceptionCode > 0)
                 {
-                    data[7] = sendData.errorCode;
-                    data[8] = sendData.exceptionCode;
-                    sendData.sendRegisterValues = null;
+                    data[7] = sendData.ErrorCode;
+                    data[8] = sendData.ExceptionCode;
+                    sendData.SendRegisterValues = null;
                 }
    
 
-                if (sendData.sendRegisterValues != null)
-                    for (int i = 0; i < (sendData.byteCount / 2); i++)
+                if (sendData.SendRegisterValues != null)
+                    for (int i = 0; i < (sendData.ByteCount / 2); i++)
                     {
-                        byteData = BitConverter.GetBytes((Int16)sendData.sendRegisterValues[i]);
+                        byteData = BitConverter.GetBytes(sendData.SendRegisterValues[i]);
                         data[9 + i * 2] = byteData[1];
                         data[10 + i * 2] = byteData[0];
                     }
                 try
                 {
-                    if (serialFlag)
+                    if (SerialFlag && serialport!=null)
                     {
                         if (!serialport.IsOpen)
                             throw new EasyModbus.Exceptions.SerialPortNotOpenedException("serial port not opened");
                         //Create CRC
-                        sendData.crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
-                        byteData = BitConverter.GetBytes((int)sendData.crc);
+                        sendData.Crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
+                        byteData = BitConverter.GetBytes((int)sendData.Crc);
                         data[data.Length - 2] = byteData[0];
                         data[data.Length - 1] = byteData[1];
                         serialport.Write(data, 6, data.Length - 6);
@@ -1363,11 +1412,14 @@ namespace MineEyeConverter
                             if (debug) StoreLogData.Instance.Store("Send Serial-Data: " + BitConverter.ToString(debugData), System.DateTime.Now);
                         }
                     }
-                    else if (udpFlag)
+                    else if (UDPFlag)
                     {
-                        //UdpClient udpClient = new UdpClient();
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(data, data.Length, endPoint);
+                        if (udpClient != null)
+                        {
+                            udpClient.Send(data, data.Length, endPoint);
+                        }
+                        
 
                     }
                     else
@@ -1376,105 +1428,107 @@ namespace MineEyeConverter
                         if (debug) StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(data), System.DateTime.Now);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) 
+                {
+                    _log.Error("Error in ReadHoldingRegisters", ex);
+                }
             }       
         }
 
         private void ReadInputRegisters(ModbusProtocol receiveData, ModbusProtocol sendData, NetworkStream stream, int portIn, IPAddress ipAddressIn)
         {
-            sendData.response = true;
+            sendData.Response = true;
 
-            sendData.transactionIdentifier = receiveData.transactionIdentifier;
-            sendData.protocolIdentifier = receiveData.protocolIdentifier;
+            sendData.TransactionIdentifier = receiveData.TransactionIdentifier;
+            sendData.ProtocolIdentifier = receiveData.ProtocolIdentifier;
 
-            sendData.unitIdentifier = receiveData.unitIdentifier;
-            sendData.functionCode = receiveData.functionCode;
-            if ((receiveData.quantity < 1) | (receiveData.quantity > 0x007D))  //Invalid quantity
+            sendData.UnitIdentifier = receiveData.UnitIdentifier;
+            sendData.FunctionCode = receiveData.FunctionCode;
+            if ((receiveData.Quantity < 1) || (receiveData.Quantity > 0x007D))  //Invalid quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 3;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 3;
             }
-            if (((receiveData.startingAdress + 1 + receiveData.quantity) > 65535)  | (receiveData.startingAdress < 0))   //Invalid Starting adress or Starting address + quantity
+            if (((receiveData.StartingAdress + 1 + receiveData.Quantity) > 65535)  || (receiveData.StartingAdress < 0))   //Invalid Starting adress or Starting address + quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 2;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 2;
             }
-            if (sendData.exceptionCode == 0)
+            if (sendData.ExceptionCode == 0)
             {
-                sendData.byteCount = (byte)(2 * receiveData.quantity);
-                sendData.sendRegisterValues = new Int16[receiveData.quantity];
+                sendData.ByteCount = (byte)(2 * receiveData.Quantity);
+                sendData.SendRegisterValues = new Int16[receiveData.Quantity];
 
-                int offset = receiveData.unitIdentifier * 10000;
-                Buffer.BlockCopy(inputRegisters.localArray,
-                    (offset + receiveData.startingAdress) * 2,
-                    sendData.sendRegisterValues, 0,
-                    receiveData.quantity * 2);
-               // Buffer.BlockCopy(inputRegisters.localArray, receiveData.startingAdress * 2 + 2, sendData.sendRegisterValues, 0, receiveData.quantity * 2);
+                int offset = receiveData.UnitIdentifier * 10000;
+                Buffer.BlockCopy(inputRegisters.LocalArray,
+                    (offset + receiveData.StartingAdress) * 2,
+                    sendData.SendRegisterValues, 0,
+                    receiveData.Quantity * 2);
             }
-                if (sendData.exceptionCode > 0)
-                    sendData.length = 0x03;
+                if (sendData.ExceptionCode > 0)
+                    sendData.Length = 0x03;
                 else
-                    sendData.length = (ushort)(0x03 + sendData.byteCount);
+                    sendData.Length = (ushort)(0x03 + sendData.ByteCount);
             
             if (true)
             {
                 Byte[] data;
-                if (sendData.exceptionCode > 0)
-                    data = new byte[9 + 2 * Convert.ToInt32(serialFlag)];
+                if (sendData.ExceptionCode > 0)
+                    data = new byte[9 + 2 * Convert.ToInt32(SerialFlag)];
                 else
-                    data = new byte[9 + sendData.byteCount + 2 * Convert.ToInt32(serialFlag)];
-                Byte[] byteData = new byte[2];
-                sendData.length = (byte)(data.Length - 6);
+                    data = new byte[9 + sendData.ByteCount + 2 * Convert.ToInt32(SerialFlag)];
+                Byte[] byteData ;
+                sendData.Length = (byte)(data.Length - 6);
 
                 //Send Transaction identifier
-                byteData = BitConverter.GetBytes((int)sendData.transactionIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.TransactionIdentifier);
                 data[0] = byteData[1];
                 data[1] = byteData[0];
 
                 //Send Protocol identifier
-                byteData = BitConverter.GetBytes((int)sendData.protocolIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.ProtocolIdentifier);
                 data[2] = byteData[1];
                 data[3] = byteData[0];
 
                 //Send length
-                byteData = BitConverter.GetBytes((int)sendData.length);
+                byteData = BitConverter.GetBytes((int)sendData.Length);
                 data[4] = byteData[1];
                 data[5] = byteData[0];
 
                 //Unit Identifier
-                data[6] = sendData.unitIdentifier;
+                data[6] = sendData.UnitIdentifier;
 
                 //Function Code
-                data[7] = sendData.functionCode;
+                data[7] = sendData.FunctionCode;
 
                 //ByteCount
-                data[8] = sendData.byteCount;
+                data[8] = sendData.ByteCount;
 
                 
-                if (sendData.exceptionCode > 0)
+                if (sendData.ExceptionCode > 0)
                 {
-                    data[7] = sendData.errorCode;
-                    data[8] = sendData.exceptionCode;
-                    sendData.sendRegisterValues = null;
+                    data[7] = sendData.ErrorCode;
+                    data[8] = sendData.ExceptionCode;
+                    sendData.SendRegisterValues = null;
                 }
 
 
-                if (sendData.sendRegisterValues != null)
-                    for (int i = 0; i < (sendData.byteCount / 2); i++)
+                if (sendData.SendRegisterValues != null)
+                    for (int i = 0; i < (sendData.ByteCount / 2); i++)
                     {
-                        byteData = BitConverter.GetBytes((Int16)sendData.sendRegisterValues[i]);
+                        byteData = BitConverter.GetBytes(sendData.SendRegisterValues[i]);
                         data[9 + i * 2] = byteData[1];
                         data[10 + i * 2] = byteData[0];
                     }
                 try
                 {
-                    if (serialFlag)
+                    if (SerialFlag && serialport!=null)
                     {
                         if (!serialport.IsOpen)
                             throw new EasyModbus.Exceptions.SerialPortNotOpenedException("serial port not opened");
                         //Create CRC
-                        sendData.crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
-                        byteData = BitConverter.GetBytes((int)sendData.crc);
+                        sendData.Crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
+                        byteData = BitConverter.GetBytes((int)sendData.Crc);
                         data[data.Length - 2] = byteData[0];
                         data[data.Length - 1] = byteData[1];
                         serialport.Write(data, 6, data.Length - 6);
@@ -1486,11 +1540,14 @@ namespace MineEyeConverter
                         }
 
                     }
-                    else if (udpFlag)
+                    else if (UDPFlag)
                     {
-                        //UdpClient udpClient = new UdpClient();
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(data, data.Length, endPoint);
+                        if (udpClient != null)
+                        {
+                            udpClient.Send(data, data.Length, endPoint);
+                        }
+                        
 
                     }
                     else
@@ -1499,109 +1556,119 @@ namespace MineEyeConverter
                         if (debug) StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(data), System.DateTime.Now);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) 
+                {
+                    _log.Error("Error in ReadInputRegisters", ex);
+                }
             }
         }
 
         private void WriteSingleCoil(ModbusProtocol receiveData, ModbusProtocol sendData, NetworkStream stream, int portIn, IPAddress ipAddressIn)
         {
-            sendData.response = true;
+            sendData.Response = true;
 
-            sendData.transactionIdentifier = receiveData.transactionIdentifier;
-            sendData.protocolIdentifier = receiveData.protocolIdentifier;
+            sendData.TransactionIdentifier = receiveData.TransactionIdentifier;
+            sendData.ProtocolIdentifier = receiveData.ProtocolIdentifier;
 
-            sendData.unitIdentifier = receiveData.unitIdentifier;
-            sendData.functionCode = receiveData.functionCode;
-            sendData.startingAdress = receiveData.startingAdress;
-            sendData.receiveCoilValues = receiveData.receiveCoilValues;
-            if ((receiveData.receiveCoilValues[0] != 0x0000) & (receiveData.receiveCoilValues[0] != 0xFF00))  //Invalid Value
+            sendData.UnitIdentifier = receiveData.UnitIdentifier;
+            sendData.FunctionCode = receiveData.FunctionCode;
+            sendData.StartingAdress = receiveData.StartingAdress;
+            sendData.ReceiveCoilValues = receiveData.ReceiveCoilValues;
+            if(receiveData.ReceiveCoilValues != null)
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 3;
-            }
-            if (((receiveData.startingAdress + 1) > 65535)  | (receiveData.startingAdress < 0))    //Invalid Starting adress or Starting address + quantity
-            {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 2;
-            }
-            if (sendData.exceptionCode == 0)
-            {
-                if (receiveData.receiveCoilValues[0] == 0xFF00)
+                if ((receiveData.ReceiveCoilValues[0] != 0x0000) && (receiveData.ReceiveCoilValues[0] != 0xFF00))  //Invalid Value
                 {
-                    lock (lockCoils)
-                        coils[receiveData.startingAdress + 1] = true;
+                    sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                    sendData.ExceptionCode = 3;
                 }
-                if (receiveData.receiveCoilValues[0] == 0x0000)
+                if (((receiveData.StartingAdress + 1) > 65535) || (receiveData.StartingAdress < 0))    //Invalid Starting adress or Starting address + quantity
                 {
-                    lock (lockCoils)
-                        coils[receiveData.startingAdress + 1] = false;
+                    sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                    sendData.ExceptionCode = 2;
                 }
-            }
-                if (sendData.exceptionCode > 0)
-                    sendData.length = 0x03;
+                if (sendData.ExceptionCode == 0)
+                {
+                    if (receiveData.ReceiveCoilValues[0] == 0xFF00)
+                    {
+                        lock (lockCoils)
+                            coils[receiveData.StartingAdress + 1] = true;
+                    }
+                    if (receiveData.ReceiveCoilValues[0] == 0x0000)
+                    {
+                        lock (lockCoils)
+                            coils[receiveData.StartingAdress + 1] = false;
+                    }
+                }
+                if (sendData.ExceptionCode > 0)
+                    sendData.Length = 0x03;
                 else
-                    sendData.length = 0x06;
+                    sendData.Length = 0x06;
+            }
+           
             
             if (true)
             {
                 Byte[] data;
-                if (sendData.exceptionCode > 0)
-                    data = new byte[9 + 2 * Convert.ToInt32(serialFlag)];
+                if (sendData.ExceptionCode > 0)
+                    data = new byte[9 + 2 * Convert.ToInt32(SerialFlag)];
                 else
-                    data = new byte[12 + 2 * Convert.ToInt32(serialFlag)];
+                    data = new byte[12 + 2 * Convert.ToInt32(SerialFlag)];
 
-                Byte[] byteData = new byte[2];
-                sendData.length = (byte)(data.Length - 6);
+                Byte[] byteData ;
+                sendData.Length = (byte)(data.Length - 6);
 
                 //Send Transaction identifier
-                byteData = BitConverter.GetBytes((int)sendData.transactionIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.TransactionIdentifier);
                 data[0] = byteData[1];
                 data[1] = byteData[0];
 
                 //Send Protocol identifier
-                byteData = BitConverter.GetBytes((int)sendData.protocolIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.ProtocolIdentifier);
                 data[2] = byteData[1];
                 data[3] = byteData[0];
 
                 //Send length
-                byteData = BitConverter.GetBytes((int)sendData.length);
+                byteData = BitConverter.GetBytes((int)sendData.Length);
                 data[4] = byteData[1];
                 data[5] = byteData[0];
 
                 //Unit Identifier
-                data[6] = sendData.unitIdentifier;
+                data[6] = sendData.UnitIdentifier;
 
                 //Function Code
-                data[7] = sendData.functionCode;
+                data[7] = sendData.FunctionCode;
 
 
 
-                if (sendData.exceptionCode > 0)
+                if (sendData.ExceptionCode > 0)
                 {
-                    data[7] = sendData.errorCode;
-                    data[8] = sendData.exceptionCode;
-                    sendData.sendRegisterValues = null;
+                    data[7] = sendData.ErrorCode;
+                    data[8] = sendData.ExceptionCode;
+                    sendData.SendRegisterValues = null;
                 }
                 else
                 {
-                    byteData = BitConverter.GetBytes((int)receiveData.startingAdress);
+                    byteData = BitConverter.GetBytes((int)receiveData.StartingAdress);
                     data[8] = byteData[1];
                     data[9] = byteData[0];
-                    byteData = BitConverter.GetBytes((int)receiveData.receiveCoilValues[0]);
-                    data[10] = byteData[1];
-                    data[11] = byteData[0];
+                    if (receiveData.ReceiveCoilValues != null)
+                    {
+                        byteData = BitConverter.GetBytes((int)receiveData.ReceiveCoilValues[0]);
+                        data[10] = byteData[1];
+                        data[11] = byteData[0];
+                    }
                 }
 
 
                 try
                 {
-                    if (serialFlag)
+                    if (SerialFlag && serialport!=null)
                     {
                         if (!serialport.IsOpen)
                             throw new EasyModbus.Exceptions.SerialPortNotOpenedException("serial port not opened");
                         //Create CRC
-                        sendData.crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
-                        byteData = BitConverter.GetBytes((int)sendData.crc);
+                        sendData.Crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
+                        byteData = BitConverter.GetBytes((int)sendData.Crc);
                         data[data.Length - 2] = byteData[0];
                         data[data.Length - 1] = byteData[1];
                         serialport.Write(data, 6, data.Length - 6);
@@ -1613,11 +1680,14 @@ namespace MineEyeConverter
                         }
 
                     }
-                    else if (udpFlag)
+                    else if (UDPFlag)
                     {
-                        //UdpClient udpClient = new UdpClient();
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(data, data.Length, endPoint);
+                        if (udpClient != null)
+                        {
+                            udpClient.Send(data, data.Length, endPoint);
+                        }
+                        
 
                     }
                     else
@@ -1626,105 +1696,116 @@ namespace MineEyeConverter
                         if (debug) StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(data), System.DateTime.Now);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) 
+                {
+                    _log.Error("Error in WriteSingleCoil", ex);
+                }
                 if (CoilsChanged != null)
-                    CoilsChanged(receiveData.unitIdentifier,receiveData.startingAdress+1, 1);
+                    CoilsChanged(receiveData.UnitIdentifier,receiveData.StartingAdress+1, 1);
             }
         }
 
         private void WriteSingleRegister(ModbusProtocol receiveData, ModbusProtocol sendData, NetworkStream stream, int portIn, IPAddress ipAddressIn)
         {
-            sendData.response = true;
+            sendData.Response = true;
 
-            sendData.transactionIdentifier = receiveData.transactionIdentifier;
-            sendData.protocolIdentifier = receiveData.protocolIdentifier;
+            sendData.TransactionIdentifier = receiveData.TransactionIdentifier;
+            sendData.ProtocolIdentifier = receiveData.ProtocolIdentifier;
 
-            sendData.unitIdentifier = receiveData.unitIdentifier;
-            sendData.functionCode = receiveData.functionCode;
-            sendData.startingAdress = receiveData.startingAdress;
-            sendData.receiveRegisterValues = receiveData.receiveRegisterValues;
-           
-            if ((receiveData.receiveRegisterValues[0] < 0x0000) | (receiveData.receiveRegisterValues[0] > 0xFFFF))  //Invalid Value
+            sendData.UnitIdentifier = receiveData.UnitIdentifier;
+            sendData.FunctionCode = receiveData.FunctionCode;
+            sendData.StartingAdress = receiveData.StartingAdress;
+            sendData.ReceiveRegisterValues = receiveData.ReceiveRegisterValues;
+            if (receiveData.ReceiveRegisterValues != null)
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 3;
-            }
-            if (((receiveData.startingAdress + 1) > 65535)  | (receiveData.startingAdress < 0))    //Invalid Starting adress or Starting address + quantity
-            {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 2;
-            }
-            if (sendData.exceptionCode == 0)
-            {
-                lock (lockHoldingRegisters)
-                    holdingRegisters[receiveData.startingAdress+1 ] = unchecked((short)receiveData.receiveRegisterValues[0]);
-            }
-                if (sendData.exceptionCode > 0)
-                    sendData.length = 0x03;
+                if ((receiveData.ReceiveRegisterValues[0] < 0x0000) || (receiveData.ReceiveRegisterValues[0] > 0xFFFF))  //Invalid Value
+                {
+                    sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                    sendData.ExceptionCode = 3;
+                }
+                if (((receiveData.StartingAdress + 1) > 65535) || (receiveData.StartingAdress < 0))    //Invalid Starting adress or Starting address + quantity
+                {
+                    sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                    sendData.ExceptionCode = 2;
+                }
+                if (sendData.ExceptionCode == 0)
+                {
+                    lock (lockHoldingRegisters)
+                        holdingRegisters[receiveData.StartingAdress + 1] = unchecked((short)receiveData.ReceiveRegisterValues[0]);
+                }
+                if (sendData.ExceptionCode > 0)
+                    sendData.Length = 0x03;
                 else
-                    sendData.length = 0x06;
+                    sendData.Length = 0x06;
+            }
+           
+            
             
             if (true)
             {
                 Byte[] data;
-                if (sendData.exceptionCode > 0)
-                    data = new byte[9 + 2 * Convert.ToInt32(serialFlag)];
+                if (sendData.ExceptionCode > 0)
+                    data = new byte[9 + 2 * Convert.ToInt32(SerialFlag)];
                 else
-                    data = new byte[12 + 2 * Convert.ToInt32(serialFlag)];
+                    data = new byte[12 + 2 * Convert.ToInt32(SerialFlag)];
 
-                Byte[] byteData = new byte[2];
-                sendData.length = (byte)(data.Length - 6);
+                Byte[] byteData;
+                sendData.Length = (byte)(data.Length - 6);
 
 
                 //Send Transaction identifier
-                byteData = BitConverter.GetBytes((int)sendData.transactionIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.TransactionIdentifier);
                 data[0] = byteData[1];
                 data[1] = byteData[0];
 
                 //Send Protocol identifier
-                byteData = BitConverter.GetBytes((int)sendData.protocolIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.ProtocolIdentifier);
                 data[2] = byteData[1];
                 data[3] = byteData[0];
 
                 //Send length
-                byteData = BitConverter.GetBytes((int)sendData.length);
+                byteData = BitConverter.GetBytes((int)sendData.Length);
                 data[4] = byteData[1];
                 data[5] = byteData[0];
 
                 //Unit Identifier
-                data[6] = sendData.unitIdentifier;
+                data[6] = sendData.UnitIdentifier;
 
                 //Function Code
-                data[7] = sendData.functionCode;
+                data[7] = sendData.FunctionCode;
 
 
 
-                if (sendData.exceptionCode > 0)
+                if (sendData.ExceptionCode > 0)
                 {
-                    data[7] = sendData.errorCode;
-                    data[8] = sendData.exceptionCode;
-                    sendData.sendRegisterValues = null;
+                    data[7] = sendData.ErrorCode;
+                    data[8] = sendData.ExceptionCode;
+                    sendData.SendRegisterValues = null;
                 }
                 else
                 {
-                    byteData = BitConverter.GetBytes((int)receiveData.startingAdress);
+                    byteData = BitConverter.GetBytes((int)receiveData.StartingAdress);
                     data[8] = byteData[1];
                     data[9] = byteData[0];
-                    byteData = BitConverter.GetBytes((int)receiveData.receiveRegisterValues[0]);
-                    data[10] = byteData[1];
-                    data[11] = byteData[0];
+                    if (receiveData.ReceiveRegisterValues != null)
+                    {
+                        byteData = BitConverter.GetBytes((int)receiveData.ReceiveRegisterValues[0]);
+                        data[10] = byteData[1];
+                        data[11] = byteData[0];
+                    }
+                    
                 }
 
 
                 try
                 {
-                    if (serialFlag)
+                    if (SerialFlag && serialport != null)
                     {
                         if (!serialport.IsOpen)
                             throw new EasyModbus.Exceptions.SerialPortNotOpenedException("serial port not opened");
                         //Create CRC
-                        sendData.crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
-                        byteData = BitConverter.GetBytes((int)sendData.crc);
+                        sendData.Crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
+                        byteData = BitConverter.GetBytes((int)sendData.Crc);
                         data[data.Length - 2] = byteData[0];
                         data[data.Length - 1] = byteData[1];
                         serialport.Write(data, 6, data.Length - 6);
@@ -1736,11 +1817,11 @@ namespace MineEyeConverter
                         }
 
                     }
-                    else if (udpFlag)
+                    else if (UDPFlag)
                     {
-                        //UdpClient udpClient = new UdpClient();
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(data, data.Length, endPoint);
+                        udpClient?.Send(data, data.Length, endPoint);
+                        
 
                     }
                     else
@@ -1749,108 +1830,104 @@ namespace MineEyeConverter
                         if (debug) StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(data), System.DateTime.Now);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) 
+                {
+                    _log.Error("Error in WriteSingleRegister ", ex);
+                }
                 if (HoldingRegistersChanged != null)
-                    HoldingRegistersChanged(receiveData.unitIdentifier,receiveData.startingAdress+1, 1);
+                    HoldingRegistersChanged(receiveData.UnitIdentifier,receiveData.StartingAdress+1, 1);
             }
         }
 
         private void WriteMultipleCoils(ModbusProtocol receiveData, ModbusProtocol sendData, NetworkStream stream, int portIn, IPAddress ipAddressIn)
         {
-            sendData.response = true;
+            sendData.Response = true;
 
-            sendData.transactionIdentifier = receiveData.transactionIdentifier;
-            sendData.protocolIdentifier = receiveData.protocolIdentifier;
+            sendData.TransactionIdentifier = receiveData.TransactionIdentifier;
+            sendData.ProtocolIdentifier = receiveData.ProtocolIdentifier;
 
-            sendData.unitIdentifier = receiveData.unitIdentifier;
-            sendData.functionCode = receiveData.functionCode;
-            sendData.startingAdress = receiveData.startingAdress;
-            sendData.quantity = receiveData.quantity;
+            sendData.UnitIdentifier = receiveData.UnitIdentifier;
+            sendData.FunctionCode = receiveData.FunctionCode;
+            sendData.StartingAdress = receiveData.StartingAdress;
+            sendData.Quantity = receiveData.Quantity;
             
-            if ((receiveData.quantity == 0x0000) | (receiveData.quantity > 0x07B0))  //Invalid Quantity
+            if ((receiveData.Quantity == 0x0000) || (receiveData.Quantity > 0x07B0))  //Invalid Quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 3;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 3;
             }
-            if ((((int)receiveData.startingAdress + 1 + (int)receiveData.quantity) > 65535)  | (receiveData.startingAdress < 0))    //Invalid Starting adress or Starting address + quantity
+            if ((((int)receiveData.StartingAdress + 1 + (int)receiveData.Quantity) > 65535)  || (receiveData.StartingAdress < 0))    //Invalid Starting adress or Starting address + quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 2;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 2;
             }
-            if (sendData.exceptionCode == 0)
+            if (sendData.ExceptionCode == 0)
             {
                 lock (lockCoils)
-                    for (int i = 0; i < receiveData.quantity; i++)
+                    for (int i = 0; i < receiveData.Quantity; i++)
                     {
                         int shift = i % 16;
-                    /*                if ((i == receiveData.quantity - 1) & (receiveData.quantity % 2 != 0))
-                                    {
-                                        if (shift < 8)
-                                            shift = shift + 8;
-                                        else
-                                            shift = shift - 8;
-                                    }*/
                         int mask = 0x1;
                         mask = mask << (shift);
-                        if ((receiveData.receiveCoilValues[i / 16] & (ushort)mask) == 0)
+                        if (receiveData.ReceiveCoilValues!=null &&(receiveData.ReceiveCoilValues[i / 16] & (ushort)mask) == 0)
                         
-                            coils[receiveData.startingAdress + i + 1] = false;
+                            coils[receiveData.StartingAdress + i + 1] = false;
                         else
                         
-                            coils[receiveData.startingAdress + i + 1] = true;
+                            coils[receiveData.StartingAdress + i + 1] = true;
 
                     }
             }
-            if (sendData.exceptionCode > 0)
-                sendData.length = 0x03;
+            if (sendData.ExceptionCode > 0)
+                sendData.Length = 0x03;
             else
-                sendData.length = 0x06;
+                sendData.Length = 0x06;
             if (true)
             {
                 Byte[] data;
-                if (sendData.exceptionCode > 0)
-                    data = new byte[9 + 2 * Convert.ToInt32(serialFlag)];
+                if (sendData.ExceptionCode > 0)
+                    data = new byte[9 + 2 * Convert.ToInt32(SerialFlag)];
                 else
-                    data = new byte[12 + 2 * Convert.ToInt32(serialFlag)];
+                    data = new byte[12 + 2 * Convert.ToInt32(SerialFlag)];
 
-                Byte[] byteData = new byte[2];
-                sendData.length = (byte)(data.Length - 6);
+                Byte[] byteData;
+                sendData.Length = (byte)(data.Length - 6);
 
                 //Send Transaction identifier
-                byteData = BitConverter.GetBytes((int)sendData.transactionIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.TransactionIdentifier);
                 data[0] = byteData[1];
                 data[1] = byteData[0];
 
                 //Send Protocol identifier
-                byteData = BitConverter.GetBytes((int)sendData.protocolIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.ProtocolIdentifier);
                 data[2] = byteData[1];
                 data[3] = byteData[0];
 
                 //Send length
-                byteData = BitConverter.GetBytes((int)sendData.length);
+                byteData = BitConverter.GetBytes((int)sendData.Length);
                 data[4] = byteData[1];
                 data[5] = byteData[0];
 
                 //Unit Identifier
-                data[6] = sendData.unitIdentifier;
+                data[6] = sendData.UnitIdentifier;
 
                 //Function Code
-                data[7] = sendData.functionCode;
+                data[7] = sendData.FunctionCode;
 
 
 
-                if (sendData.exceptionCode > 0)
+                if (sendData.ExceptionCode > 0)
                 {
-                    data[7] = sendData.errorCode;
-                    data[8] = sendData.exceptionCode;
-                    sendData.sendRegisterValues = null;
+                    data[7] = sendData.ErrorCode;
+                    data[8] = sendData.ExceptionCode;
+                    sendData.SendRegisterValues = null;
                 }
                 else
                 {
-                    byteData = BitConverter.GetBytes((int)receiveData.startingAdress);
+                    byteData = BitConverter.GetBytes((int)receiveData.StartingAdress);
                     data[8] = byteData[1];
                     data[9] = byteData[0];
-                    byteData = BitConverter.GetBytes((int)receiveData.quantity);
+                    byteData = BitConverter.GetBytes((int)receiveData.Quantity);
                     data[10] = byteData[1];
                     data[11] = byteData[0];
                 }
@@ -1858,13 +1935,13 @@ namespace MineEyeConverter
 
                 try
                 {
-                    if (serialFlag)
+                    if (SerialFlag && serialport!=null)
                     {
                         if (!serialport.IsOpen)
                             throw new EasyModbus.Exceptions.SerialPortNotOpenedException("serial port not opened");
                         //Create CRC
-                        sendData.crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
-                        byteData = BitConverter.GetBytes((int)sendData.crc);
+                        sendData.Crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
+                        byteData = BitConverter.GetBytes((int)sendData.Crc);
                         data[data.Length - 2] = byteData[0];
                         data[data.Length - 1] = byteData[1];
                         serialport.Write(data, 6, data.Length - 6);
@@ -1876,11 +1953,14 @@ namespace MineEyeConverter
                         }
 
                     }
-                    else if (udpFlag)
+                    else if (UDPFlag)
                     {
-                        //UdpClient udpClient = new UdpClient();
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(data, data.Length, endPoint);
+                        if (udpClient != null)
+                        {
+                            udpClient.Send(data, data.Length, endPoint);
+                        }
+                        
 
                     }
                     else
@@ -1889,92 +1969,95 @@ namespace MineEyeConverter
                         if (debug) StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(data), System.DateTime.Now);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) 
+                {
+                    _log.Error("Error in WriteMultipleCoils", ex);
+                }
                 if (CoilsChanged != null)
-                    CoilsChanged(receiveData.unitIdentifier,receiveData.startingAdress+1, receiveData.quantity);
+                    CoilsChanged(receiveData.UnitIdentifier,receiveData.StartingAdress+1, receiveData.Quantity);
             }
         }
 
         private void WriteMultipleRegisters(ModbusProtocol receiveData, ModbusProtocol sendData, NetworkStream stream, int portIn, IPAddress ipAddressIn)
         {
-            sendData.response = true;
+            sendData.Response = true;
 
-            sendData.transactionIdentifier = receiveData.transactionIdentifier;
-            sendData.protocolIdentifier = receiveData.protocolIdentifier;
+            sendData.TransactionIdentifier = receiveData.TransactionIdentifier;
+            sendData.ProtocolIdentifier = receiveData.ProtocolIdentifier;
 
-            sendData.unitIdentifier = receiveData.unitIdentifier;
-            sendData.functionCode = receiveData.functionCode;
-            sendData.startingAdress = receiveData.startingAdress;
-            sendData.quantity = receiveData.quantity;
+            sendData.UnitIdentifier = receiveData.UnitIdentifier;
+            sendData.FunctionCode = receiveData.FunctionCode;
+            sendData.StartingAdress = receiveData.StartingAdress;
+            sendData.Quantity = receiveData.Quantity;
 
-            if ((receiveData.quantity == 0x0000) | (receiveData.quantity > 0x07B0))  //Invalid Quantity
+            if ((receiveData.Quantity == 0x0000) || (receiveData.Quantity > 0x07B0))  //Invalid Quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 3;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 3;
             }
-            if ((((int)receiveData.startingAdress + 1 + (int)receiveData.quantity) > 65535)  | (receiveData.startingAdress < 0))   //Invalid Starting adress or Starting address + quantity
+            if ((((int)receiveData.StartingAdress + 1 + (int)receiveData.Quantity) > 65535)  || (receiveData.StartingAdress < 0))   //Invalid Starting adress or Starting address + quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 2;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 2;
             }
-            if (sendData.exceptionCode == 0)
+            if (sendData.ExceptionCode == 0 && receiveData.ReceiveRegisterValues!=null)
             {
                 lock (lockHoldingRegisters)
-                    for (int i = 0; i < receiveData.quantity; i++)
+                    for (int i = 0; i < receiveData.Quantity; i++)
                     {
-                        holdingRegisters[receiveData.startingAdress + i + 1] = unchecked((short)receiveData.receiveRegisterValues[i]);
+                        holdingRegisters[receiveData.StartingAdress + i + 1] = unchecked((short)receiveData.ReceiveRegisterValues[i]);
                     }
             }
-            if (sendData.exceptionCode > 0)
-                sendData.length = 0x03;
+            if (sendData.ExceptionCode > 0)
+                sendData.Length = 0x03;
             else
-                sendData.length = 0x06;
+                sendData.Length = 0x06;
             if (true)
             {
                 Byte[] data;
-                if (sendData.exceptionCode > 0)
-                    data = new byte[9 + 2 * Convert.ToInt32(serialFlag)];
+                if (sendData.ExceptionCode > 0)
+                    data = new byte[9 + 2 * Convert.ToInt32(SerialFlag)];
                 else
-                    data = new byte[12 + 2 * Convert.ToInt32(serialFlag)];
+                    data = new byte[12 + 2 * Convert.ToInt32(SerialFlag)];
 
-                Byte[] byteData = new byte[2];
-                sendData.length = (byte)(data.Length - 6);
+                Byte[] byteData;
+                sendData.Length = (byte)(data.Length - 6);
 
                 //Send Transaction identifier
-                byteData = BitConverter.GetBytes((int)sendData.transactionIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.TransactionIdentifier);
                 data[0] = byteData[1];
                 data[1] = byteData[0];
 
                 //Send Protocol identifier
-                byteData = BitConverter.GetBytes((int)sendData.protocolIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.ProtocolIdentifier);
                 data[2] = byteData[1];
                 data[3] = byteData[0];
 
                 //Send length
-                byteData = BitConverter.GetBytes((int)sendData.length);
+                byteData = BitConverter.GetBytes((int)sendData.Length);
                 data[4] = byteData[1];
                 data[5] = byteData[0];
 
                 //Unit Identifier
-                data[6] = sendData.unitIdentifier;
+                data[6] = sendData.UnitIdentifier;
 
                 //Function Code
-                data[7] = sendData.functionCode;
+                data[7] = sendData.FunctionCode;
 
 
 
-                if (sendData.exceptionCode > 0)
+                if (sendData.ExceptionCode > 0)
                 {
-                    data[7] = sendData.errorCode;
-                    data[8] = sendData.exceptionCode;
-                    sendData.sendRegisterValues = null;
+                    data[7] = sendData.ErrorCode;
+                    data[8] = sendData.ExceptionCode;
+                    sendData.SendRegisterValues = null;
                 }
                 else
                 {
-                    byteData = BitConverter.GetBytes((int)receiveData.startingAdress);
+                    byteData = BitConverter.GetBytes((int)receiveData.StartingAdress);
                     data[8] = byteData[1];
                     data[9] = byteData[0];
-                    byteData = BitConverter.GetBytes((int)receiveData.quantity);
+                    byteData = BitConverter.GetBytes((int)receiveData.Quantity);
                     data[10] = byteData[1];
                     data[11] = byteData[0];
                 }
@@ -1982,13 +2065,13 @@ namespace MineEyeConverter
 
                 try
                 {
-                    if (serialFlag)
+                    if (SerialFlag && serialport!=null)
                     {
                         if (!serialport.IsOpen)
                             throw new EasyModbus.Exceptions.SerialPortNotOpenedException("serial port not opened");
                         //Create CRC
-                        sendData.crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
-                        byteData = BitConverter.GetBytes((int)sendData.crc);
+                        sendData.Crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
+                        byteData = BitConverter.GetBytes((int)sendData.Crc);
                         data[data.Length - 2] = byteData[0];
                         data[data.Length - 1] = byteData[1];
                         serialport.Write(data, 6, data.Length - 6);
@@ -2000,11 +2083,14 @@ namespace MineEyeConverter
                         }
 
                     }
-                    else if (udpFlag)
+                    else if (UDPFlag)
                     {
-                        //UdpClient udpClient = new UdpClient();
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(data, data.Length, endPoint);
+                        if (udpClient != null)
+                        {
+                            udpClient.Send(data, data.Length, endPoint);
+                        }
+                        
 
                     }
                     else
@@ -2013,97 +2099,100 @@ namespace MineEyeConverter
                         if (debug) StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(data), System.DateTime.Now);
                     }
                     }
-                catch (Exception) { }
+                catch (Exception ex) 
+                {
+                    _log.Error("Error in WriteMultipleRegisters", ex);
+                }
                 if (HoldingRegistersChanged != null)
-                    HoldingRegistersChanged(receiveData.unitIdentifier,receiveData.startingAdress+1, receiveData.quantity);
+                    HoldingRegistersChanged(receiveData.UnitIdentifier,receiveData.StartingAdress+1, receiveData.Quantity);
             }
         }
 
         private void ReadWriteMultipleRegisters(ModbusProtocol receiveData, ModbusProtocol sendData, NetworkStream stream, int portIn, IPAddress ipAddressIn)
         {
-            sendData.response = true;
+            sendData.Response = true;
 
-            sendData.transactionIdentifier = receiveData.transactionIdentifier;
-            sendData.protocolIdentifier = receiveData.protocolIdentifier;
+            sendData.TransactionIdentifier = receiveData.TransactionIdentifier;
+            sendData.ProtocolIdentifier = receiveData.ProtocolIdentifier;
 
-            sendData.unitIdentifier = receiveData.unitIdentifier;
-            sendData.functionCode = receiveData.functionCode;
+            sendData.UnitIdentifier = receiveData.UnitIdentifier;
+            sendData.FunctionCode = receiveData.FunctionCode;
 
 
-            if ((receiveData.quantityRead < 0x0001) | (receiveData.quantityRead > 0x007D) | (receiveData.quantityWrite < 0x0001) | (receiveData.quantityWrite > 0x0079) | (receiveData.byteCount != (receiveData.quantityWrite * 2)))  //Invalid Quantity
+            if ((receiveData.QuantityRead < 0x0001) || (receiveData.QuantityRead > 0x007D) || (receiveData.QuantityWrite < 0x0001) || (receiveData.QuantityWrite > 0x0079) || (receiveData.ByteCount != (receiveData.QuantityWrite * 2)))  //Invalid Quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 3;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 3;
             }
-            if ((((int)receiveData.startingAddressRead + 1 + (int)receiveData.quantityRead) > 65535) | (((int)receiveData.startingAddressWrite + 1 + (int)receiveData.quantityWrite) > 65535) | (receiveData.quantityWrite < 0) | (receiveData.quantityRead < 0))    //Invalid Starting adress or Starting address + quantity
+            if ((((int)receiveData.StartingAddressRead + 1 + (int)receiveData.QuantityRead) > 65535) || (((int)receiveData.StartingAddressWrite + 1 + (int)receiveData.QuantityWrite) > 65535) || (receiveData.QuantityWrite < 0) || (receiveData.QuantityRead < 0))    //Invalid Starting adress or Starting address + quantity
             {
-                sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
-                sendData.exceptionCode = 2;
+                sendData.ErrorCode = (byte)(receiveData.FunctionCode + 0x80);
+                sendData.ExceptionCode = 2;
             }
-            if (sendData.exceptionCode == 0)
+            if (sendData.ExceptionCode == 0 && receiveData.ReceiveRegisterValues!=null)
             {
-                sendData.sendRegisterValues = new Int16[receiveData.quantityRead];
+                sendData.SendRegisterValues = new Int16[receiveData.QuantityRead];
                 lock (lockHoldingRegisters)
-                    Buffer.BlockCopy(holdingRegisters.localArray, receiveData.startingAddressRead * 2 + 2, sendData.sendRegisterValues, 0, receiveData.quantityRead * 2);
+                    Buffer.BlockCopy(holdingRegisters.LocalArray, receiveData.StartingAddressRead * 2 + 2, sendData.SendRegisterValues, 0, receiveData.QuantityRead * 2);
 
                 lock (holdingRegisters)
-                    for (int i = 0; i < receiveData.quantityWrite; i++)
+                    for (int i = 0; i < receiveData.QuantityWrite; i++)
                     {
-                        holdingRegisters[receiveData.startingAddressWrite + i + 1] = unchecked((short)receiveData.receiveRegisterValues[i]);
+                        holdingRegisters[receiveData.StartingAddressWrite + i + 1] = unchecked((short)receiveData.ReceiveRegisterValues[i]);
                     }
-                sendData.byteCount = (byte)(2 * receiveData.quantityRead);
+                sendData.ByteCount = (byte)(2 * receiveData.QuantityRead);
             }
-            if (sendData.exceptionCode > 0)
-                sendData.length = 0x03;
+            if (sendData.ExceptionCode > 0)
+                sendData.Length = 0x03;
             else
-                sendData.length = Convert.ToUInt16(3 + 2 * receiveData.quantityRead);
+                sendData.Length = Convert.ToUInt16(3 + 2 * receiveData.QuantityRead);
             if (true)
             {
                 Byte[] data;
-                if (sendData.exceptionCode > 0)
-                    data = new byte[9 + 2 * Convert.ToInt32(serialFlag)];
+                if (sendData.ExceptionCode > 0)
+                    data = new byte[9 + 2 * Convert.ToInt32(SerialFlag)];
                 else
-                    data = new byte[9 + sendData.byteCount + 2 * Convert.ToInt32(serialFlag)];
+                    data = new byte[9 + sendData.ByteCount + 2 * Convert.ToInt32(SerialFlag)];
 
-                Byte[] byteData = new byte[2];
+                Byte[] byteData;
 
                 //Send Transaction identifier
-                byteData = BitConverter.GetBytes((int)sendData.transactionIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.TransactionIdentifier);
                 data[0] = byteData[1];
                 data[1] = byteData[0];
 
                 //Send Protocol identifier
-                byteData = BitConverter.GetBytes((int)sendData.protocolIdentifier);
+                byteData = BitConverter.GetBytes((int)sendData.ProtocolIdentifier);
                 data[2] = byteData[1];
                 data[3] = byteData[0];
 
                 //Send length
-                byteData = BitConverter.GetBytes((int)sendData.length);
+                byteData = BitConverter.GetBytes((int)sendData.Length);
                 data[4] = byteData[1];
                 data[5] = byteData[0];
 
                 //Unit Identifier
-                data[6] = sendData.unitIdentifier;
+                data[6] = sendData.UnitIdentifier;
 
                 //Function Code
-                data[7] = sendData.functionCode;
+                data[7] = sendData.FunctionCode;
 
                 //ByteCount
-                data[8] = sendData.byteCount;
+                data[8] = sendData.ByteCount;
 
 
-                if (sendData.exceptionCode > 0)
+                if (sendData.ExceptionCode > 0)
                 {
-                    data[7] = sendData.errorCode;
-                    data[8] = sendData.exceptionCode;
-                    sendData.sendRegisterValues = null;
+                    data[7] = sendData.ErrorCode;
+                    data[8] = sendData.ExceptionCode;
+                    sendData.SendRegisterValues = null;
                 }
                 else
                 {
-                    if (sendData.sendRegisterValues != null)
-                        for (int i = 0; i < (sendData.byteCount / 2); i++)
+                    if (sendData.SendRegisterValues != null)
+                        for (int i = 0; i < (sendData.ByteCount / 2); i++)
                         {
-                            byteData = BitConverter.GetBytes((Int16)sendData.sendRegisterValues[i]);
+                            byteData = BitConverter.GetBytes(sendData.SendRegisterValues[i]);
                             data[9 + i * 2] = byteData[1];
                             data[10 + i * 2] = byteData[0];
                         }
@@ -2113,13 +2202,13 @@ namespace MineEyeConverter
 
                 try
                 {
-                    if (serialFlag)
+                    if (SerialFlag && serialport!=null)
                     {
                         if (!serialport.IsOpen)
                             throw new EasyModbus.Exceptions.SerialPortNotOpenedException("serial port not opened");
                         //Create CRC
-                        sendData.crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
-                        byteData = BitConverter.GetBytes((int)sendData.crc);
+                        sendData.Crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
+                        byteData = BitConverter.GetBytes((int)sendData.Crc);
                         data[data.Length - 2] = byteData[0];
                         data[data.Length - 1] = byteData[1];
                         serialport.Write(data, 6, data.Length - 6);
@@ -2131,12 +2220,13 @@ namespace MineEyeConverter
                         }
 
                     }
-                    else if (udpFlag)
+                    else if (UDPFlag)
                     {
-                        //UdpClient udpClient = new UdpClient();
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(data, data.Length, endPoint);
-
+                        if (udpClient != null)
+                        {
+                            udpClient.Send(data, data.Length, endPoint);
+                        }
                     }
                     else
                     {
@@ -2144,70 +2234,73 @@ namespace MineEyeConverter
                         if (debug) StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(data), System.DateTime.Now);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) 
+                {
+                    _log.Error("Error in ReadWriteMultipleRegisters", ex);
+                }
                 if (HoldingRegistersChanged != null)
-                    HoldingRegistersChanged(receiveData.unitIdentifier,receiveData.startingAddressWrite+1, receiveData.quantityWrite);
+                    HoldingRegistersChanged(receiveData.UnitIdentifier,receiveData.StartingAddressWrite+1, receiveData.QuantityWrite);
             }
         }
 
         public void sendException(int errorCode, int exceptionCode, ModbusProtocol receiveData, ModbusProtocol sendData, NetworkStream stream, int portIn, IPAddress ipAddressIn)
         {
-            sendData.response = true;
+            sendData.Response = true;
 
-            sendData.transactionIdentifier = receiveData.transactionIdentifier;
-            sendData.protocolIdentifier = receiveData.protocolIdentifier;
+            sendData.TransactionIdentifier = receiveData.TransactionIdentifier;
+            sendData.ProtocolIdentifier = receiveData.ProtocolIdentifier;
 
-            sendData.unitIdentifier = receiveData.unitIdentifier;
-            sendData.errorCode = (byte)errorCode;
-            sendData.exceptionCode = (byte)exceptionCode;
+            sendData.UnitIdentifier = receiveData.UnitIdentifier;
+            sendData.ErrorCode = (byte)errorCode;
+            sendData.ExceptionCode = (byte)exceptionCode;
 
-             if (sendData.exceptionCode > 0)
-                sendData.length = 0x03;
+             if (sendData.ExceptionCode > 0)
+                sendData.Length = 0x03;
             else
-                sendData.length = (ushort)(0x03 + sendData.byteCount);
+                sendData.Length = (ushort)(0x03 + sendData.ByteCount);
 
              if (true)
              {
                  Byte[] data;
-                 if (sendData.exceptionCode > 0)
-                     data = new byte[9 + 2 * Convert.ToInt32(serialFlag)];
+                 if (sendData.ExceptionCode > 0)
+                     data = new byte[9 + 2 * Convert.ToInt32(SerialFlag)];
                  else
-                     data = new byte[9 + sendData.byteCount + 2 * Convert.ToInt32(serialFlag)];
-                 Byte[] byteData = new byte[2];
-                 sendData.length = (byte)(data.Length - 6);
+                     data = new byte[9 + sendData.ByteCount + 2 * Convert.ToInt32(SerialFlag)];
+                 Byte[] byteData;
+                 sendData.Length = (byte)(data.Length - 6);
 
                  //Send Transaction identifier
-                 byteData = BitConverter.GetBytes((int)sendData.transactionIdentifier);
+                 byteData = BitConverter.GetBytes((int)sendData.TransactionIdentifier);
                  data[0] = byteData[1];
                  data[1] = byteData[0];
 
                  //Send Protocol identifier
-                 byteData = BitConverter.GetBytes((int)sendData.protocolIdentifier);
+                 byteData = BitConverter.GetBytes((int)sendData.ProtocolIdentifier);
                  data[2] = byteData[1];
                  data[3] = byteData[0];
 
                  //Send length
-                 byteData = BitConverter.GetBytes((int)sendData.length);
+                 byteData = BitConverter.GetBytes((int)sendData.Length);
                  data[4] = byteData[1];
                  data[5] = byteData[0];
 
                  //Unit Identifier
-                 data[6] = sendData.unitIdentifier;
+                 data[6] = sendData.UnitIdentifier;
 
 
-                 data[7] = sendData.errorCode;
-                 data[8] = sendData.exceptionCode;
+                 data[7] = sendData.ErrorCode;
+                 data[8] = sendData.ExceptionCode;
 
 
                  try
                  {
-                    if (serialFlag)
+                    if (SerialFlag && serialport!=null)
                     {
                         if (!serialport.IsOpen)
                             throw new EasyModbus.Exceptions.SerialPortNotOpenedException("serial port not opened");
                         //Create CRC
-                        sendData.crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
-                        byteData = BitConverter.GetBytes((int)sendData.crc);
+                        sendData.Crc = EasyModbus.ModbusClient.calculateCRC(data, Convert.ToUInt16(data.Length - 8), 6);
+                        byteData = BitConverter.GetBytes((int)sendData.Crc);
                         data[data.Length - 2] = byteData[0];
                         data[data.Length - 1] = byteData[1];
                         serialport.Write(data, 6, data.Length - 6);
@@ -2218,9 +2311,8 @@ namespace MineEyeConverter
                             if (debug) StoreLogData.Instance.Store("Send Serial-Data: " + BitConverter.ToString(debugData), System.DateTime.Now);
                         }
                     }
-                    else if (udpFlag)
+                    else if (UDPFlag && udpClient!=null)
                     {
-                        //UdpClient udpClient = new UdpClient();
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
                         udpClient.Send(data, data.Length, endPoint);
 
@@ -2231,7 +2323,10 @@ namespace MineEyeConverter
                         if (debug) StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(data), System.DateTime.Now);
                     }
                  }
-                 catch (Exception) { }
+                 catch (Exception ex) 
+                {
+                    _log.Error("Error in sendException", ex);
+                }
              }
         }
 
@@ -2265,67 +2360,17 @@ namespace MineEyeConverter
             }
         }
 
-       
 
-        public bool UDPFlag
-        {
-            get
-            {
-                return udpFlag;
-            }
-            set
-            {
-                udpFlag = value;
-            }
-        }
-        
- 		public bool SerialFlag
- 		{
- 			get
- 			{
- 				return serialFlag;
- 			}
- 			set
- 			{
- 				serialFlag = value;
- 			}
- 		}
 
-        public int Baudrate
-        {
-            get
-            {
-                return baudrate;
-            }
-            set
-            {
-                baudrate = value;
-            }
-        }
+        public bool UDPFlag { get; set; }
 
-        public System.IO.Ports.Parity Parity
-        {
-            get
-            {
-                return parity;
-            }
-            set
-            {
-                parity = value;
-            }
-        }
+        public bool SerialFlag { get; set; }
 
-        public System.IO.Ports.StopBits StopBits
-        {
-            get
-            {
-                return stopBits;
-            }
-            set
-            {
-                stopBits = value;
-            }
-        }
+        public int Baudrate { get; set; } = 9600;
+
+        public System.IO.Ports.Parity Parity { get; set; } = Parity.Even;
+
+        public System.IO.Ports.StopBits StopBits { get; set; } = StopBits.One;
 
         public string SerialPort
         {
@@ -2337,23 +2382,13 @@ namespace MineEyeConverter
             {
                 serialPort = value;
                 if (serialPort != null)
-                    serialFlag = true;
+                    SerialFlag = true;
                 else
-                    serialFlag = false;
+                    SerialFlag = false;
             }
         }
 
-        public byte UnitIdentifier
-        {
-            get
-            {
-                return unitIdentifier;
-            }
-            set
-            {
-                unitIdentifier = value;
-            }
-        }
+        public byte UnitIdentifier { get; set; }
 
 
 
@@ -2382,8 +2417,8 @@ namespace MineEyeConverter
 
     public class HoldingRegisters
     {
-        public Int16[] localArray = new Int16[65535];
-        ModbusServer modbusServer;
+        public Int16[] LocalArray { get; set; } = new Int16[65535];
+            readonly ModbusServer modbusServer;
      
        
 
@@ -2394,10 +2429,10 @@ namespace MineEyeConverter
 
             public Int16 this[int x]
         {
-            get { return this.localArray[x]; }
+            get { return this.LocalArray[x]; }
             set
             {              
-                this.localArray[x] = value;
+                this.LocalArray[x] = value;
                 
             }
         }
@@ -2405,8 +2440,8 @@ namespace MineEyeConverter
 
     public class InputRegisters
     {
-        public Int16[] localArray = new Int16[65535];
-        ModbusServer modbusServer;
+        public Int16[] LocalArray { get; set; } = new Int16[65535];
+            readonly ModbusServer modbusServer;
 
         
 
@@ -2417,10 +2452,10 @@ namespace MineEyeConverter
 
             public Int16 this[int x]
         {
-            get { return this.localArray[x]; }
+            get { return this.LocalArray[x]; }
             set
             {
-                this.localArray[x] = value;
+                this.LocalArray[x] = value;
 
             }
         }
@@ -2428,8 +2463,8 @@ namespace MineEyeConverter
 
     public class Coils
     {
-        public bool[] localArray = new bool[65535];
-        ModbusServer modbusServer;
+        public bool[] LocalArray { get; set; } = new bool[65535];
+            readonly ModbusServer modbusServer;
 
         
 
@@ -2440,10 +2475,10 @@ namespace MineEyeConverter
 
             public bool this[int x]
         {
-            get { return this.localArray[x]; }
+            get { return this.LocalArray[x]; }
             set
             {
-                this.localArray[x] = value;
+                this.LocalArray[x] = value;
             
             }
         }
@@ -2451,8 +2486,8 @@ namespace MineEyeConverter
 
     public class DiscreteInputs
     {
-        public bool[] localArray = new bool[65535];
-        ModbusServer modbusServer;
+        public bool[] LocalArray { get; set; } = new bool[65535];
+            readonly ModbusServer modbusServer;
 
         
 
@@ -2463,10 +2498,10 @@ namespace MineEyeConverter
 
             public bool this[int x]
         {
-            get { return this.localArray[x]; }
+            get { return this.LocalArray[x]; }
             set
             {
-                this.localArray[x] = value;
+                this.LocalArray[x] = value;
               
             }
         }

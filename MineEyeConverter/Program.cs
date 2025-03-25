@@ -66,7 +66,8 @@ namespace MineEyeConverter
                     }
                     else
                     {
-                        serviceName = config["name"];
+                        serviceName = config["name"] ?? string.Empty;
+
                     }
                 }
 
@@ -87,8 +88,8 @@ namespace MineEyeConverter
                     else if (services.Any())
                     {
                         // Jako ostateczność, użyj pierwszej usługi z konfiguracji
-                        selectedServiceConfig = services.First();
-                        serviceName = selectedServiceConfig.GetValue<string>("Name");
+                        selectedServiceConfig = services[0];
+                        serviceName = selectedServiceConfig.GetValue<string>("Name",string.Empty);
                         File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "startup.log"),
                             $"Nie podano nazwy usługi, używam pierwszej z konfiguracji: {serviceName} {DateTime.Now}{Environment.NewLine}");
                     }
@@ -116,9 +117,6 @@ namespace MineEyeConverter
                 // Pobranie opisu usługi z wybranej konfiguracji lub użycie domyślnego
                 string serviceDescription = selectedServiceConfig?.GetValue<string>("Description")
                                             ?? "TCP <=> RTU Converter";
-
-                // Pobranie specyficznej konfiguracji dla tej usługi, jeśli istnieje
-                var serviceConfig = selectedServiceConfig;
 
                 // Konfiguracja usługi
                 x.Service<ModbusService>(s =>

@@ -15,11 +15,9 @@ namespace MineEyeConverter.Config
     {
         public static Configuration LoadConfiguration(string filePath)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(Configuration));
-            using (FileStream fs = new FileStream(filePath, FileMode.Open))
-            {
-                return (serializer.Deserialize(fs) as Configuration) ?? throw new InvalidOperationException("Deserialization error – null value returned");
-            }
+            XmlSerializer serializer = new(typeof(Configuration));
+            using FileStream fs = new(filePath, FileMode.Open);
+            return (serializer.Deserialize(fs) as Configuration) ?? throw new InvalidOperationException("Deserialization error – null value returned");
         }
     }
 }
