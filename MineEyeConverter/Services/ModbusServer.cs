@@ -71,9 +71,9 @@ namespace MineEyeConverter
         public IPAddress ipAddressIn;       //For UDP-Connection only
         public TcpClient tcpClient;
     }
-#endregion
+    #endregion
 
-#region TCPHandler class
+    #region TCPHandler class
     public class TcpHandler
     {
         private readonly log4net.ILog _log = log4net.LogManager.GetLogger(nameof(TcpHandler));
@@ -94,7 +94,8 @@ namespace MineEyeConverter
         public string? ipAddress { get; set; }
 
         /// When making a server TCP listen socket, will listen to this IP address.
-        public IPAddress LocalIPAddress {
+        public IPAddress LocalIPAddress
+        {
             get { return localIPAddress; }
         }
         private readonly IPAddress localIPAddress = IPAddress.Any;
@@ -169,6 +170,7 @@ namespace MineEyeConverter
         }
 
         private readonly object _lockObject = new object();
+
 
         private int GetAndCleanNumberOfConnectedClients(Client client)
         {
@@ -249,6 +251,7 @@ namespace MineEyeConverter
 
         public void Disconnect()
         {
+            
             try
             {
                 foreach (Client clientLoop in tcpClientLastRequestList)

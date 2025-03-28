@@ -1,98 +1,46 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\",
+  "WorkspaceRootPath": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\services\\modbustcpserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\services\\modbustcpserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\services\\modbusservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\services\\modbusservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\services\\modbusserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3kopia\\mineeyeconverter3\\mineeyeconverter\\services\\modbusserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\services\\modbusserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\services\\modbusclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3kopia\\mineeyeconverter3\\mineeyeconverter\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3kopia\\mineeyeconverter3\\mineeyeconverter\\services\\modbusclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\services\\modbusclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\services\\clienthandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\services\\clienthandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3kopia\\mineeyeconverter3\\mineeyeconverter\\services\\modbusservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\services\\modbusservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\models\\slaveconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\models\\slaveconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3kopia\\mineeyeconverter3\\mineeyeconverter\\services\\modbustcpserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\services\\modbustcpserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\models\\modbusslavedevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\models\\modbusslavedevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\models\\modbusregister.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\models\\modbusregister.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\interfaces\\iprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\interfaces\\iprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\interfaces\\ioperationmodehandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\interfaces\\ioperationmodehandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\implementations\\providers\\tcpprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\implementations\\providers\\tcpprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\implementations\\providers\\serialprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\implementations\\providers\\serialprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\implementations\\operationalmodes\\manualmodehandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\implementations\\operationalmodes\\manualmodehandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\implementations\\operationalmodes\\learningmodehandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\implementations\\operationalmodes\\learningmodehandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\implementations\\operationalmodes\\automodehandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\implementations\\operationalmodes\\automodehandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\config\\registermanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\config\\registermanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\config\\modbusconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\config\\modbusconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\config\\configloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\config\\configloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3kopia\\mineeyeconverter3\\mineeyeconverter\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
       "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\config.xml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3kopia\\mineeyeconverter3\\mineeyeconverter\\config.xml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
       "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\config.xml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\mineeyeconverter.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3kopia\\mineeyeconverter3\\mineeyeconverter\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3kopia\\mineeyeconverter3\\mineeyeconverter\\mineeyeconverter.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
       "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\mineeyeconverter.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3 \u2014 kopia\\mineeyeconverter3\\mineeyeconverter\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|c:\\users\\arnik\\onedrive\\pulpit\\mc3kopia\\mineeyeconverter3\\mineeyeconverter\\mineeyeconverter.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{4F5DD3EA-F14D-4F1F-BD2D-983616E37C89}|MineEyeConverter\\MineEyeConverter.csproj|solutionrelative:mineeyeconverter\\mineeyeconverter.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
     }
   ],
   "DocumentGroupContainers": [
@@ -102,7 +50,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 15,
+          "SelectedChildIndex": 11,
           "Children": [
             {
               "$type": "Bookmark",
@@ -126,10 +74,6 @@
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{131369f2-062d-44a2-8671-91ff31efb4f4}"
-            },
-            {
-              "$type": "Bookmark",
               "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
             },
             {
@@ -142,280 +86,132 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "ModbusRegister.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Models\\ModbusRegister.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Models\\ModbusRegister.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Models\\ModbusRegister.cs",
-              "RelativeToolTip": "MineEyeConverter\\Models\\ModbusRegister.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAwwBMAAAA+AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-24T11:12:57.237Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "ModbusSlaveDevice.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Models\\ModbusSlaveDevice.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Models\\ModbusSlaveDevice.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Models\\ModbusSlaveDevice.cs",
-              "RelativeToolTip": "MineEyeConverter\\Models\\ModbusSlaveDevice.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-24T11:13:01.018Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "SlaveConfiguration.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Models\\SlaveConfiguration.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Models\\SlaveConfiguration.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Models\\SlaveConfiguration.cs",
-              "RelativeToolTip": "MineEyeConverter\\Models\\SlaveConfiguration.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-24T11:13:02.381Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "ClientHandler.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ClientHandler.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Services\\ClientHandler.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ClientHandler.cs",
-              "RelativeToolTip": "MineEyeConverter\\Services\\ClientHandler.cs",
-              "ViewState": "AgIAAGAAAAAAAAAAAAASwGcAAAAMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-16T20:27:50.669Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 2,
               "Title": "ModbusClient.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusClient.cs",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusClient.cs",
               "RelativeDocumentMoniker": "MineEyeConverter\\Services\\ModbusClient.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusClient.cs",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusClient.cs",
               "RelativeToolTip": "MineEyeConverter\\Services\\ModbusClient.cs",
-              "ViewState": "AgIAACYAAAAAAAAAAAAowKgBAAA/AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-16T20:27:42.472Z"
+              "WhenOpened": "2025-03-28T11:24:26.953Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "ModbusServer.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusServer.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Services\\ModbusServer.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusServer.cs",
-              "RelativeToolTip": "MineEyeConverter\\Services\\ModbusServer.cs",
-              "ViewState": "AgIAAGkJAAAAAAAAAAAvwHoJAAAhAAAAAAAAAA==",
+              "Title": "ModbusService.cs",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusService.cs",
+              "RelativeDocumentMoniker": "MineEyeConverter\\Services\\ModbusService.cs",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusService.cs",
+              "RelativeToolTip": "MineEyeConverter\\Services\\ModbusService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-16T20:27:37.115Z"
+              "WhenOpened": "2025-03-28T11:24:26.242Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ModbusTcpServer.cs",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusTcpServer.cs",
+              "RelativeDocumentMoniker": "MineEyeConverter\\Services\\ModbusTcpServer.cs",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusTcpServer.cs",
+              "RelativeToolTip": "MineEyeConverter\\Services\\ModbusTcpServer.cs",
+              "ViewState": "AgIAAKsAAAAAAAAAAAAwwKgAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-28T11:23:05.618Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "ModbusServer.cs",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusServer.cs",
+              "RelativeDocumentMoniker": "MineEyeConverter\\Services\\ModbusServer.cs",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusServer.cs",
+              "RelativeToolTip": "MineEyeConverter\\Services\\ModbusServer.cs",
+              "ViewState": "AgIAAHMAAAAAAAAAAAAUwKwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-28T11:21:33.13Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "config.xml",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\config.xml",
+              "RelativeDocumentMoniker": "MineEyeConverter\\config.xml",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\config.xml",
+              "RelativeToolTip": "MineEyeConverter\\config.xml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAF4AAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003576|",
+              "WhenOpened": "2025-03-26T13:50:16.917Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\appsettings.json",
+              "RelativeDocumentMoniker": "MineEyeConverter\\appsettings.json",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\appsettings.json",
+              "RelativeToolTip": "MineEyeConverter\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-03-26T13:41:39.442Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "App.config",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\App.config",
+              "RelativeDocumentMoniker": "MineEyeConverter\\App.config",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\App.config",
+              "RelativeToolTip": "MineEyeConverter\\App.config",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2025-03-26T13:41:38.251Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Program.cs",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Program.cs",
               "RelativeDocumentMoniker": "MineEyeConverter\\Program.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Program.cs",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Program.cs",
               "RelativeToolTip": "MineEyeConverter\\Program.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAADgv34AAAAxAAAAAAAAAA==",
+              "ViewState": "AgIAADsBAAAAAAAAAAAwwFsBAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-16T13:04:34.443Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ModbusService.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusService.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Services\\ModbusService.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusService.cs",
-              "RelativeToolTip": "MineEyeConverter\\Services\\ModbusService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEcAAAATAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-15T16:12:43.642Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "ModbusTcpServer.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusTcpServer.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Services\\ModbusTcpServer.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Services\\ModbusTcpServer.cs",
-              "RelativeToolTip": "MineEyeConverter\\Services\\ModbusTcpServer.cs",
-              "ViewState": "AgIAABwAAAAAAAAAAIAzwFwAAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-16T20:27:12.219Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 9,
-              "Title": "IProvider.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Interfaces\\IProvider.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Interfaces\\IProvider.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Interfaces\\IProvider.cs",
-              "RelativeToolTip": "MineEyeConverter\\Interfaces\\IProvider.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-24T11:12:55.482Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "IOperationModeHandler.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Interfaces\\IOperationModeHandler.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Interfaces\\IOperationModeHandler.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Interfaces\\IOperationModeHandler.cs",
-              "RelativeToolTip": "MineEyeConverter\\Interfaces\\IOperationModeHandler.cs",
-              "ViewState": "AgIAADwAAAAAAAAAAAAiwEUAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-16T20:28:06.397Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "TcpProvider.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\Providers\\TcpProvider.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Implementations\\Providers\\TcpProvider.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\Providers\\TcpProvider.cs",
-              "RelativeToolTip": "MineEyeConverter\\Implementations\\Providers\\TcpProvider.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAuwA8AAAA2AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-24T11:12:50.493Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "SerialProvider.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\Providers\\SerialProvider.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Implementations\\Providers\\SerialProvider.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\Providers\\SerialProvider.cs",
-              "RelativeToolTip": "MineEyeConverter\\Implementations\\Providers\\SerialProvider.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAuwA8AAAA+AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-24T11:12:49.735Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "ManualModeHandler.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\OperationalModes\\ManualModeHandler.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Implementations\\OperationalModes\\ManualModeHandler.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\OperationalModes\\ManualModeHandler.cs",
-              "RelativeToolTip": "MineEyeConverter\\Implementations\\OperationalModes\\ManualModeHandler.cs",
-              "ViewState": "AgIAALEAAAAAAAAAAAAiwLwAAACPAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-24T11:12:36.966Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
-              "Title": "LearningModeHandler.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
-              "RelativeToolTip": "MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
-              "ViewState": "AgIAAC4AAAAAAAAAAAAewIMAAAAyAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-24T11:12:15.977Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 15,
-              "Title": "AutoModeHandler.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\OperationalModes\\AutoModeHandler.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Implementations\\OperationalModes\\AutoModeHandler.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\OperationalModes\\AutoModeHandler.cs",
-              "RelativeToolTip": "MineEyeConverter\\Implementations\\OperationalModes\\AutoModeHandler.cs",
-              "ViewState": "AgIAADIAAAAAAAAAAIAwwBgAAABEAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-16T20:27:56.872Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 16,
-              "Title": "RegisterManager.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\RegisterManager.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Config\\RegisterManager.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\RegisterManager.cs",
-              "RelativeToolTip": "MineEyeConverter\\Config\\RegisterManager.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACkAAAAMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-24T11:11:53.695Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 17,
-              "Title": "ModbusConfiguration.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\ModbusConfiguration.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Config\\ModbusConfiguration.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\ModbusConfiguration.cs",
-              "RelativeToolTip": "MineEyeConverter\\Config\\ModbusConfiguration.cs",
-              "ViewState": "AgIAABEAAAAAAAAAAAAewFEAAAA2AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-24T11:11:50.717Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 18,
-              "Title": "ConfigLoader.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\ConfigLoader.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Config\\ConfigLoader.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\ConfigLoader.cs",
-              "RelativeToolTip": "MineEyeConverter\\Config\\ConfigLoader.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAADgvxIAAAAMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-24T11:06:57.738Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 19,
-              "Title": "App.config",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\App.config",
-              "RelativeDocumentMoniker": "MineEyeConverter\\App.config",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\App.config",
-              "RelativeToolTip": "MineEyeConverter\\App.config",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAWAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
-              "WhenOpened": "2025-03-15T17:28:52.612Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 20,
-              "Title": "config.xml",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\config.xml",
-              "RelativeDocumentMoniker": "MineEyeConverter\\config.xml",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\config.xml",
-              "RelativeToolTip": "MineEyeConverter\\config.xml",
-              "ViewState": "AgIAAEUAAAAAAAAAAAAAAH4AAAAsAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003576|",
-              "WhenOpened": "2025-03-15T19:12:52.804Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 22,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\appsettings.json",
-              "RelativeDocumentMoniker": "MineEyeConverter\\appsettings.json",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\appsettings.json",
-              "RelativeToolTip": "MineEyeConverter\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAbAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-03-15T17:29:00.021Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 21,
-              "Title": "MineEyeConverter.csproj",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\MineEyeConverter.csproj",
+              "Title": "MineEyeConverter",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\MineEyeConverter.csproj",
               "RelativeDocumentMoniker": "MineEyeConverter\\MineEyeConverter.csproj",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3 \u2014 kopia\\mineeyeconverter3\\MineEyeConverter\\MineEyeConverter.csproj",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\MineEyeConverter.csproj",
+              "RelativeToolTip": "MineEyeConverter\\MineEyeConverter.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-03-25T10:26:37.609Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "MineEyeConverter.csproj",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\MineEyeConverter.csproj",
+              "RelativeDocumentMoniker": "MineEyeConverter\\MineEyeConverter.csproj",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\MineEyeConverter.csproj",
               "RelativeToolTip": "MineEyeConverter\\MineEyeConverter.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-03-24T12:03:05.158Z"
+              "WhenOpened": "2025-03-24T12:03:05.158Z",
+              "EditorCaption": ""
             }
           ]
         }

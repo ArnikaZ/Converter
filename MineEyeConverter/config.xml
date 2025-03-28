@@ -59,7 +59,6 @@
 				</Slave> -->
 			</SlaveDeviceList>
 			<ClientWhiteList>
-				<!--R - tylko odczyt, W - odczyt i zapis -->
 				<Client>
 					<IpAddress>192.168.1.10</IpAddress>
 					<Permission>W</Permission>
@@ -94,7 +93,6 @@
 				</Slave> -->
 			</SlaveDeviceList>
 			<ClientWhiteList>
-				<!--R - tylko odczyt, W - odczyt i zapis -->
 				<Client>
 					<IpAddress>192.168.1.10</IpAddress>
 					<Permission>W</Permission>
@@ -141,22 +139,3 @@
 	</Instances>
 </Configuration>
 
-
-
-<!--
-<RegisterMapping>
-		 Tryb mapowania rejestrów: 
-         Auto  - mapowanie 1:1,
-         Learning - automatyczne tworzenie rejestrów na podstawie przychodzących danych,
-         Manual - ręcznie skonfigurowana lista rejestrów
-		<Mode>Auto</Mode>
-		<MappingDetails>
-			 W zależności od wybranego trybu możesz tu dodać szczegółowe ustawienia.
-           Przykład dla trybu Manual:
-      <Register id="1" slave="1" />
-      <Register id="2" slave="1" />
-     
-		</MappingDetails>
-	</RegisterMapping>
-
--->

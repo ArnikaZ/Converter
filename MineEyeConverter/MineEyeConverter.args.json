@@ -3,6 +3,10 @@
   "Id": "4f5dd3ea-f14d-4f1f-bd2d-983616e37c89",
   "Items": [
     {
+      "Id": "f5519f8e-07b2-412c-a7b3-1a83dcebddd0",
+      "Command": "run -name:Przenosnik11"
+    },
+    {
       "Id": "4875c514-b1f3-422b-95d5-56e428a0bd3b",
       "Command": "install -name:Przenosnik11"
     },
