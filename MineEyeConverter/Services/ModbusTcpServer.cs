@@ -1,4 +1,5 @@
 ﻿using EasyModbus;
+using MineEyeConverter.Config;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
@@ -23,7 +24,6 @@ namespace MineEyeConverter
         private readonly Dictionary<byte, ModbusSlaveDevice> _slaveDevices; //klucz - adres urządzenia, wartość - obiekt slave
         private bool _isRunning; 
         private readonly object _syncLock = new object();
-        public readonly Configuration _config;
 
         private List<Client> modbusClientAccounts { get; set; }
         public IOperationModeHandler OperationModeHandler { get; set; }
@@ -34,10 +34,11 @@ namespace MineEyeConverter
 
         public ModbusTcpServer(string instanceName, bool useWhiteList=false)
         {
-
             _log.InfoFormat("Initializing Modbus server for instance '{0}'", instanceName);
-            _config = Config.ConfigLoader.LoadConfiguration("config.xml");
-            var instanceConfig = _config.Instances.FirstOrDefault(i => string.Equals(i.Name, instanceName, StringComparison.OrdinalIgnoreCase));
+
+            var config = ConfigLoader.LoadInstanceConfiguration(instanceName);
+            var instanceConfig = config.Instances.FirstOrDefault();
+           
             if (instanceConfig == null)
             {
                 _log.ErrorFormat("Instance '{0}' not found in configuration", instanceName);

@@ -17,6 +17,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json;
 using System.Runtime.CompilerServices;
 using System.Net.WebSockets;
+using MineEyeConverter.Config;
 
 [assembly: log4net.Config.XmlConfigurator(Watch =true)]
 namespace MineEyeConverter
@@ -31,6 +32,7 @@ namespace MineEyeConverter
         static void Main(string[] args)
         {
             log4net.ILog _log = log4net.LogManager.GetLogger(typeof(Program));
+            
 
             if (args.Length == 0)
             {
@@ -165,13 +167,13 @@ namespace MineEyeConverter
             Console.Clear();
             try
             {
-                string configPath = "config.xml";
-                XDocument doc = XDocument.Load(configPath);
+                ConfigLoader.EnsureConfigFolderExists();
                 Console.WriteLine("Add new instance");
                 string instanceName = ReadNonEmptyString("Enter instance name: ");
-                var existingInstance = doc.Root?.Element("Instances")?.Elements("Instance").FirstOrDefault(e => e.Attribute("name")?.Value == instanceName);
+                string configPath = ConfigLoader.GetInstanceConfigPath(instanceName);
+               
 
-                if (existingInstance != null)
+                if (File.Exists(configPath))
                 {
                     Console.WriteLine($"Error: instance with name '{instanceName}' already exists in configuration.");
                     Console.WriteLine("Operation aborted. Press any key to continue...");
@@ -187,24 +189,22 @@ namespace MineEyeConverter
                 Console.WriteLine("2. COM");
                 string connectionTypeChoice = ReadFromOptions("Choose (1/2): ", "1", "2");
                 string connectionType = connectionTypeChoice == "1" ? "RtuOverTcp" : "COM";
-                XElement newInstance = new XElement("Instance",
-                    new XAttribute("name", instanceName),
-                    new XElement("OperationMode", operationMode),
-                    new XElement("ListeningPort", listeningPort),
-                    new XElement("ConnectionType", connectionType),
-                    new XElement("RtuSettings"),
-                    new XElement("SlaveDeviceList"),
-                    new XElement("ClientWhiteList")
-                    );
-                XElement? rtuSettings = newInstance.Element("RtuSettings");
+                var instance = new Instance
+                {
+                    Name = instanceName,
+                    OperationMode = operationMode,
+                    ListeningPort = listeningPort,
+                    ConnectionType = connectionType,
+                    RtuSettings = new RtuSettings(),
+                    SlaveDeviceList = new SlaveDeviceList(),
+                    ClientWhiteList = new ClientWhiteList()
+                };
                 if (connectionType == "RtuOverTcp")
                 {
                     string ipAddress = ReadIpAddress("Device IP address: ");
                     int port = ReadInt("Device port: ");
-                    rtuSettings?.Add(
-                        new XElement("IpAddress", ipAddress),
-                        new XElement("Port", port)
-                        );
+                    instance.RtuSettings.IpAddress = ipAddress;
+                    instance.RtuSettings.Port = port;
                 }
                 else
                 {
@@ -223,54 +223,46 @@ namespace MineEyeConverter
                     string stopBits = ReadFromOptions("Stop bits (1/1.5/2): ", "1", "1.5", "2");
                     string dataBits = ReadFromOptions("Data bits (5-8): ", "5", "6", "7", "8");
 
-                    rtuSettings?.Add(
-                        new XElement("PortName", portName),
-                        new XElement("BaudRate", baudRate),
-                        new XElement("Parity", parity),
-                        new XElement("StopBits", stopBits),
-                        new XElement("DataBits", dataBits)
-                    );
+                    instance.RtuSettings.PortName = portName;
+                    instance.RtuSettings.BaudRate = baudRate;
+                    instance.RtuSettings.Parity = parity;
+                    instance.RtuSettings.StopBits = int.Parse(stopBits);
+                    instance.RtuSettings.DataBits = int.Parse(dataBits);
                 }
 
-                XElement? slaveDeviceList = newInstance.Element("SlaveDeviceList");
                 int slaveCount = ReadInt("Number of devices to add: ");
-
                 for (int i = 0; i < slaveCount; i++)
                 {
                     Console.WriteLine($"\nSlave device #{i + 1}:");
                     int unitId = ReadInt("UnitId: ");
-
                     string description = ReadNonEmptyString("Description: ");
 
-                    slaveDeviceList?.Add(
-                        new XElement("Slave",
-                            new XElement("UnitId", unitId),
-                            new XElement("Description", description)
-                        )
-                    );
+                    instance.SlaveDeviceList.Slaves.Add(new Slave
+                    {
+                        UnitId = unitId,
+                        Description = description
+                    });
                 }
 
-                XElement? clientWhiteList = newInstance.Element("ClientWhiteList");
                 int clientCount = ReadInt("\nNumber of clients to add to the white list: ");
-
                 for (int i = 0; i < clientCount; i++)
                 {
                     Console.WriteLine($"\nClient #{i + 1}:");
                     string clientIp = ReadIpAddress("IP address: ");
-
-                    Console.Write("Permission (R - read only, W - read and write): ");
                     string permission = ReadFromOptions("Permission (R - read only, W - read and write): ", "r", "w").ToUpper();
 
-                    clientWhiteList?.Add(
-                        new XElement("Client",
-                            new XElement("IpAddress", clientIp),
-                            new XElement("Permission", permission)
-                        )
-                    );
+                    instance.ClientWhiteList.Clients.Add(new Client
+                    {
+                        IpAddress = clientIp,
+                        Permission = permission
+                    });
                 }
-                doc.Root?.Element("Instances")?.Add(newInstance);
+                var config = new Configuration
+                {
+                    Instances = new List<Instance> { instance }
+                };
 
-                doc.Save(configPath);
+                ConfigLoader.SaveInstanceConfiguration(config, instanceName);
 
                 try
                 {
@@ -331,14 +323,9 @@ namespace MineEyeConverter
             Console.Clear();
             try
             {
-                string configFile = "config.xml";
-                XDocument doc = XDocument.Load(configFile);
+                var instanceNames = ConfigLoader.GetAvailableInstances();
 
-                var instances = doc.Root?.Element("Instances")?.Elements("Instance")
-                    .Select(e => e.Attribute("name")?.Value)
-                    .Where(name => name != null)
-                    .ToList();
-                if (instances == null || instances.Count == 0)
+                if (instanceNames.Count == 0)
                 {
                     Console.WriteLine("No instances found in configuration");
                     Console.WriteLine("Press any key to return to main menu...");
@@ -346,21 +333,23 @@ namespace MineEyeConverter
                     ChooseAction();
                     return;
                 }
+
                 Console.WriteLine("Available instances:");
-                for (int i = 0; i < instances.Count; i++)
+                for (int i = 0; i < instanceNames.Count; i++)
                 {
-                    Console.WriteLine($"{i + 1}. {instances[i]}");
+                    Console.WriteLine($"{i + 1}. {instanceNames[i]}");
                 }
                 int selection = ReadInt("Choose instance to edit (0 to cancel): ");
-                if (selection == 0 || selection > instances.Count)
+                if (selection == 0 || selection > instanceNames.Count)
                 {
                     ChooseAction();
                     return;
                 }
-                string? selectedInstanceName = instances[selection - 1];
-                var instanceElement = doc.Root?.Element("Instances")?.Elements("Instance")
-                    .FirstOrDefault(e => e.Attribute("name")?.Value == selectedInstanceName);
-                if (instanceElement == null)
+
+                string selectedInstanceName = instanceNames[selection - 1];
+                var config = ConfigLoader.LoadInstanceConfiguration(selectedInstanceName);
+                var instanceConfig = config.Instances.FirstOrDefault();
+                if (instanceConfig == null)
                 {
                     Console.WriteLine("Error: instance not found");
                     Console.WriteLine("Press any key to return to main menu...");
@@ -381,31 +370,31 @@ namespace MineEyeConverter
                 {
                     case 1:
                         string operationMode = ValidateOperationMode();
-                        instanceElement.Element("OperationMode")!.Value = operationMode;
+                        instanceConfig.OperationMode = operationMode;
                         break;
 
                     case 2:
                         int listeningPort = ReadInt("New listening port: ");
-                        instanceElement.Element("ListeningPort")!.Value = listeningPort.ToString();
+                        instanceConfig.ListeningPort = listeningPort;
                         break;
 
                     case 3:
-                        EditConnectionSettings(instanceElement);
+                        EditConnectionSettings(instanceConfig);
                         break;
 
                     case 4:
-                        EditSlaveDevices(instanceElement);
+                        EditSlaveDevices(instanceConfig);
                         break;
 
-                    case 5:
-                        EditClientWhitelist(instanceElement);
-                        break;
+                    //case 5:
+                    //    EditClientWhitelist(instanceConfig);
+                    //    break;
 
                     default:
                         ChooseAction();
                         return;
                 }
-                doc.Save(configFile);
+                ConfigLoader.SaveInstanceConfiguration(config, selectedInstanceName);
                 Console.WriteLine($"Instance '{selectedInstanceName}' updated successfully.");
             }
             catch (Exception ex)
@@ -423,13 +412,9 @@ namespace MineEyeConverter
             Console.Clear();
             try
             {
-                string configFile = "config.xml";
-                XDocument doc = XDocument.Load(configFile);
-                var instances = doc.Root?.Element("Instances")?.Elements("Instance")
-                    .Select(e => e.Attribute("name")?.Value)
-                    .Where(name => name != null)
-                    .ToList();
-                if(instances==null || instances.Count == 0)
+                var instanceNames = ConfigLoader.GetAvailableInstances();
+
+                if (instanceNames.Count == 0)
                 {
                     Console.WriteLine("No instances found in configuration");
                     Console.WriteLine("Press any key to return to main menu...");
@@ -437,30 +422,36 @@ namespace MineEyeConverter
                     ChooseAction();
                     return;
                 }
-                Console.WriteLine("Available instances");
-                for(int i = 0; i < instances.Count; i++)
+
+                Console.WriteLine("Available instances:");
+                for (int i = 0; i < instanceNames.Count; i++)
                 {
-                    Console.WriteLine($"{i+1}. {instances[i]}");
+                    Console.WriteLine($"{i + 1}. {instanceNames[i]}");
                 }
-                int selection = ReadInt("Choose instance to remove (0 to cancel):");
-                if(selection==0 || selection > instances.Count)
+
+                int selection = ReadInt("Choose instance to remove (0 to cancel): ");
+                if (selection == 0 || selection > instanceNames.Count)
                 {
                     ChooseAction();
                     return;
                 }
-                string? selectedInstance = instances[selection - 1];
-                Console.WriteLine($"Are you sure you want to remove instance '{selectedInstance}'? (y/n)");
+
+                string selectedInstanceName = instanceNames[selection - 1];
+
+                Console.WriteLine($"Are you sure you want to remove instance '{selectedInstanceName}'? (y/n)");
                 string confirmation = Console.ReadLine()?.ToLower() ?? "";
+
                 if (confirmation == "y" || confirmation == "yes")
                 {
-                    var instanceElement = doc.Root?.Element("Instances")?.Elements("Instance")
-                        .FirstOrDefault(e => e.Attribute("name").Value == selectedInstance);
-                    if (instanceElement != null)
+                    // Delete the instance config file
+                    string configPath = ConfigLoader.GetInstanceConfigPath(selectedInstanceName);
+                    if (File.Exists(configPath))
                     {
-                        instanceElement.Remove();
-                        doc.Save(configFile);
+                        File.Delete(configPath);
+
                         try
                         {
+                            // Update appsettings.json
                             string appSettingsPath = "appsettings.json";
                             string jsonContent = File.ReadAllText(appSettingsPath);
 
@@ -477,7 +468,7 @@ namespace MineEyeConverter
                                     for (int i = 0; i < serviceArray.Count; i++)
                                     {
                                         var service = serviceArray[i];
-                                        if (service != null && service["Name"]?.ToString() == selectedInstance)
+                                        if (service != null && service["Name"]?.ToString() == selectedInstanceName)
                                         {
                                             serviceArray.RemoveAt(i);
                                             break;
@@ -485,7 +476,7 @@ namespace MineEyeConverter
                                     }
 
                                     File.WriteAllText(appSettingsPath, rootNode.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-                                    Console.WriteLine($"Instance '{selectedInstance}' removed from appsettings.json");
+                                    Console.WriteLine($"Instance '{selectedInstanceName}' removed from appsettings.json");
                                 }
                             }
                         }
@@ -494,7 +485,11 @@ namespace MineEyeConverter
                             Console.WriteLine($"Error while updating appsettings.json: {jsonEx.Message}");
                         }
 
-                        Console.WriteLine($"Instance '{selectedInstance}' removed successfully.");
+                        Console.WriteLine($"Instance '{selectedInstanceName}' removed successfully.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error: Instance configuration file not found for '{selectedInstanceName}'");
                     }
                 }
                 else
@@ -502,10 +497,11 @@ namespace MineEyeConverter
                     Console.WriteLine("Operation cancelled");
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
             }
+
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
             ChooseAction();
@@ -516,17 +512,11 @@ namespace MineEyeConverter
             Console.Clear();
             try
             {
-                string configPath = "config.xml";
-                XDocument doc = XDocument.Load(configPath);
+                var instanceNames = ConfigLoader.GetAvailableInstances();
 
-                var instances = doc.Root?.Element("Instances")?.Elements("Instance")
-                    .Select(e => e.Attribute("name")?.Value)
-                    .Where(name => name != null)
-                    .ToList();
-
-                if (instances == null || instances.Count == 0)
+                if (instanceNames.Count == 0)
                 {
-                    Console.WriteLine("No instances found in configuration.");
+                    Console.WriteLine("No instances found in configuration");
                     Console.WriteLine("Press any key to return to main menu...");
                     Console.ReadKey();
                     ChooseAction();
@@ -534,23 +524,25 @@ namespace MineEyeConverter
                 }
 
                 Console.WriteLine("Available instances:");
-                for (int i = 0; i < instances.Count; i++)
+                for (int i = 0; i < instanceNames.Count; i++)
                 {
-                    Console.WriteLine($"{i + 1}. {instances[i]}");
+                    Console.WriteLine($"{i + 1}. {instanceNames[i]}");
                 }
 
                 int selection = ReadInt("Choose instance to view (0 to cancel): ");
-                if (selection == 0 || selection > instances.Count)
+                if (selection == 0 || selection > instanceNames.Count)
                 {
                     ChooseAction();
                     return;
                 }
 
-                string? selectedInstanceName = instances[selection - 1];
-                var instanceElement = doc.Root?.Element("Instances")?.Elements("Instance")
-                    .FirstOrDefault(e => e.Attribute("name")?.Value == selectedInstanceName);
+                string selectedInstanceName = instanceNames[selection - 1];
 
-                if (instanceElement == null)
+                // Load the instance configuration
+                var config = ConfigLoader.LoadInstanceConfiguration(selectedInstanceName);
+                var instanceConfig = config.Instances.FirstOrDefault();
+
+                if (instanceConfig == null)
                 {
                     Console.WriteLine("Error: Instance not found.");
                     ChooseAction();
@@ -558,32 +550,43 @@ namespace MineEyeConverter
                 }
 
                 Console.WriteLine($"Instance: {selectedInstanceName}");
-                Console.WriteLine($"Operation Mode: {instanceElement.Element("OperationMode")?.Value}");
-                Console.WriteLine($"Listening Port: {instanceElement.Element("ListeningPort")?.Value}");
-                Console.WriteLine($"Connection Type: {instanceElement.Element("ConnectionType")?.Value}");
+                Console.WriteLine($"Operation Mode: {instanceConfig.OperationMode}");
+                Console.WriteLine($"Listening Port: {instanceConfig.ListeningPort}");
+                Console.WriteLine($"Connection Type: {instanceConfig.ConnectionType}");
+
                 Console.WriteLine("\nRTU Settings:");
-                var rtuSettings = instanceElement.Element("RtuSettings");
-                foreach (var setting in rtuSettings.Elements())
+                var rtuSettings = instanceConfig.RtuSettings;
+
+                if (instanceConfig.ConnectionType.Equals("RtuOverTcp", StringComparison.OrdinalIgnoreCase))
                 {
-                    Console.WriteLine($"  {setting.Name}: {setting.Value}");
+                    Console.WriteLine($"  IP Address: {rtuSettings.IpAddress}");
+                    Console.WriteLine($"  Port: {rtuSettings.Port}");
+                }
+                else if (instanceConfig.ConnectionType.Equals("COM", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine($"  Port Name: {rtuSettings.PortName}");
+                    Console.WriteLine($"  Baud Rate: {rtuSettings.BaudRate}");
+                    Console.WriteLine($"  Parity: {rtuSettings.Parity}");
+                    Console.WriteLine($"  Stop Bits: {rtuSettings.StopBits}");
+                    Console.WriteLine($"  Data Bits: {rtuSettings.DataBits}");
                 }
 
                 Console.WriteLine("\nDevices:");
-                var slaveDevices = instanceElement.Element("SlaveDeviceList")?.Elements("Slave");
+                var slaveDevices = instanceConfig.SlaveDeviceList?.Slaves;
                 if (slaveDevices == null || !slaveDevices.Any())
                 {
-                    Console.WriteLine("No devices configured.");
+                    Console.WriteLine("  No devices configured.");
                 }
                 else
                 {
                     foreach (var slave in slaveDevices)
                     {
-                        Console.WriteLine($"  UnitId: {slave.Element("UnitId")?.Value}, Description: {slave.Element("Description")?.Value}");
+                        Console.WriteLine($"  UnitId: {slave.UnitId}, Description: {slave.Description}");
                     }
                 }
 
                 Console.WriteLine("\nClient Whitelist:");
-                var clients = instanceElement.Element("ClientWhiteList")?.Elements("Client");
+                var clients = instanceConfig.ClientWhiteList?.Clients;
                 if (clients == null || !clients.Any())
                 {
                     Console.WriteLine("  No clients in whitelist.");
@@ -592,7 +595,7 @@ namespace MineEyeConverter
                 {
                     foreach (var client in clients)
                     {
-                        Console.WriteLine($"  IP: {client.Element("IpAddress")?.Value}, Permission: {client.Element("Permission")?.Value}");
+                        Console.WriteLine($"  IP: {client.IpAddress}, Permission: {client.Permission}");
                     }
                 }
             }
@@ -669,27 +672,26 @@ namespace MineEyeConverter
                 Console.WriteLine("Invalid IP address. Try again.");
             }
         }
-        private static void EditConnectionSettings(XElement instanceElement)
+        private static void EditConnectionSettings(Instance instanceConfig)
         {
+
             Console.WriteLine("Connection type: ");
             Console.WriteLine("1. Rtu over Tcp");
             Console.WriteLine("2. COM");
             string connectionTypeChoice = ReadFromOptions("Choose (1/2): ", "1", "2");
             string connectionType = connectionTypeChoice == "1" ? "RtuOverTcp" : "COM";
 
-            instanceElement.Element("ConnectionType").Value = connectionType;
+            instanceConfig.ConnectionType = connectionType;
 
-            XElement rtuSettings = instanceElement.Element("RtuSettings");
-            rtuSettings.RemoveAll();
+            // Clear existing RTU settings
+            instanceConfig.RtuSettings = new RtuSettings();
 
             if (connectionType == "RtuOverTcp")
             {
                 string ipAddress = ReadIpAddress("Device IP address: ");
                 int port = ReadInt("Device port: ");
-                rtuSettings.Add(
-                    new XElement("IpAddress", ipAddress),
-                    new XElement("Port", port)
-                );
+                instanceConfig.RtuSettings.IpAddress = ipAddress;
+                instanceConfig.RtuSettings.Port = port;
             }
             else
             {
@@ -705,23 +707,26 @@ namespace MineEyeConverter
                 if (parityChoice == "2") parity = "Odd";
                 else if (parityChoice == "3") parity = "Even";
 
-                string stopBits = ReadFromOptions("Stop bits (1/1.5/2): ", "1", "1.5", "2");
-                string dataBits = ReadFromOptions("Data bits (5-8): ", "5", "6", "7", "8");
+                string stopBitsStr = ReadFromOptions("Stop bits (1/1.5/2): ", "1", "1.5", "2");
+                int stopBits = stopBitsStr == "1.5" ? 0 : int.Parse(stopBitsStr);
 
-                rtuSettings.Add(
-                    new XElement("PortName", portName),
-                    new XElement("BaudRate", baudRate),
-                    new XElement("Parity", parity),
-                    new XElement("StopBits", stopBits),
-                    new XElement("DataBits", dataBits)
-                );
+                string dataBitsStr = ReadFromOptions("Data bits (5-8): ", "5", "6", "7", "8");
+                int dataBits = int.Parse(dataBitsStr);
+
+                instanceConfig.RtuSettings.PortName = portName;
+                instanceConfig.RtuSettings.BaudRate = baudRate;
+                instanceConfig.RtuSettings.Parity = parity;
+                instanceConfig.RtuSettings.StopBits = stopBits;
+                instanceConfig.RtuSettings.DataBits = dataBits;
             }
         }
 
-        private static void EditSlaveDevices(XElement instanceElement)
+        private static void EditSlaveDevices(Instance instanceConfig)
         {
-            XElement slaveDeviceList = instanceElement.Element("SlaveDeviceList");
-            var slaves = slaveDeviceList.Elements("Slave").ToList();
+            if (instanceConfig.SlaveDeviceList == null)
+                instanceConfig.SlaveDeviceList = new SlaveDeviceList();
+
+            var slaves = instanceConfig.SlaveDeviceList.Slaves;
 
             Console.WriteLine("Slave devices:");
             if (slaves.Count == 0)
@@ -733,7 +738,7 @@ namespace MineEyeConverter
                 for (int i = 0; i < slaves.Count; i++)
                 {
                     var slave = slaves[i];
-                    Console.WriteLine($"{i + 1}. UnitId: {slave.Element("UnitId").Value}, Description: {slave.Element("Description").Value}");
+                    Console.WriteLine($"{i + 1}. UnitId: {slave.UnitId}, Description: {slave.Description}");
                 }
             }
 
@@ -752,12 +757,12 @@ namespace MineEyeConverter
                     int unitId = ReadInt("UnitId: ");
                     string description = ReadNonEmptyString("Description: ");
 
-                    slaveDeviceList.Add(
-                        new XElement("Slave",
-                            new XElement("UnitId", unitId),
-                            new XElement("Description", description)
-                        )
-                    );
+                    slaves.Add(new Slave
+                    {
+                        UnitId = unitId,
+                        Description = description
+                    });
+
                     Console.WriteLine("Device added successfully.");
                     break;
 
@@ -775,12 +780,15 @@ namespace MineEyeConverter
                         break;
                     }
 
-                    var slaveToEdit = slaves[editIndex];
                     int newUnitId = ReadInt("UnitId: ");
                     string newDescription = ReadNonEmptyString("Description: ");
 
-                    slaveToEdit.Element("UnitId").Value = newUnitId.ToString();
-                    slaveToEdit.Element("Description").Value = newDescription;
+                    slaves[editIndex] = new Slave
+                    {
+                        UnitId = newUnitId,
+                        Description = newDescription
+                    };
+
                     Console.WriteLine("Device updated successfully.");
                     break;
 
@@ -798,7 +806,7 @@ namespace MineEyeConverter
                         break;
                     }
 
-                    slaves[removeIndex].Remove();
+                    slaves.RemoveAt(removeIndex);
                     Console.WriteLine("Device removed successfully.");
                     break;
 
@@ -806,7 +814,7 @@ namespace MineEyeConverter
                 default:
                     return;
             }
-        }
+            }
 
         private static void EditClientWhitelist(XElement instanceElement)
         {

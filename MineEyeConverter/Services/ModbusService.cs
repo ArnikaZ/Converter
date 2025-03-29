@@ -15,56 +15,48 @@ namespace MineEyeConverter
     /// </summary>
     public class ModbusService 
     {
-
+        private readonly log4net.ILog _log = log4net.LogManager.GetLogger(typeof(ModbusService));
         public ModbusTcpServer? Server { get; set; }
         private readonly string instanceName;
-        private readonly string filePath = Path.Combine(AppContext.BaseDirectory, "config.xml");
-        private readonly string logFilePath;
+        
 
         public ModbusService(string instanceName)
         {
             this.instanceName = instanceName;
-            logFilePath = Path.Combine(AppContext.BaseDirectory, "instanceName.log");
         }
-        public void LogInstanceName()
+       
+        public void Start()
         {
-
             try
             {
-                string logMessage = $"Instance name: {instanceName} - {DateTime.Now}" + Environment.NewLine;
-                File.AppendAllText(logFilePath, logMessage);
+                Configuration _config = ConfigLoader.LoadInstanceConfiguration(instanceName);
+                
+                var instanceConfig = _config.Instances.FirstOrDefault();
+                if (instanceConfig == null)
+                {
+                    throw new ConfigurationErrorsException("Nie znaleziono konfiguracji dla instancji: " + instanceName);
+                }
+                
+                string operationMode = instanceConfig.OperationMode.ToLower();
+                if (operationMode == "auto" || operationMode == "manual")
+                {
+                    Server = new ModbusTcpServer(instanceName, true);
+                    Server.Start();
+                }
+                else if (operationMode == "learning")
+                {
+
+                    LearningModeHandler lm = new LearningModeHandler(instanceName);
+                    List<SlaveConfiguration> discoveredConfigs = lm.DiscoverSlaves();
+                    lm.SaveConfigurationToXml(discoveredConfigs);
+                }
             }
             catch (Exception ex)
             {
-                // Obsługa wyjątku – można zapisać błąd do dziennika zdarzeń lub wykonać inne działania
-                Console.WriteLine("Błąd zapisu do pliku: " + ex.Message);
+                _log.Error("Error starting service: ", ex);
+                throw new ConfigurationErrorsException($"Configuration file for instance '{instanceName}' not found. {ex.Message}");
             }
         }
-        public void Start()
-        {
-            LogInstanceName();
-            Configuration _config = ConfigLoader.LoadConfiguration(filePath);
-            var instanceConfig = _config.Instances.FirstOrDefault(i => string.Equals(i.Name, instanceName, StringComparison.OrdinalIgnoreCase));
-            if (instanceConfig == null)
-            {
-                throw new ConfigurationErrorsException("Nie znaleziono konfiguracji dla instancji: " + instanceName);
-            }
-            string operationMode = instanceConfig.OperationMode.ToLower();
-            if (operationMode == "auto" || operationMode == "manual")
-            {
-                Server = new ModbusTcpServer(instanceName, true);
-                Server.Start();
-            }
-            else if (operationMode == "learning")
-            {
-                
-                LearningModeHandler lm = new LearningModeHandler(instanceName);
-                List<SlaveConfiguration> discoveredConfigs = lm.DiscoverSlaves();
-                lm.SaveConfigurationToXml(discoveredConfigs);
-            }
-
-        }
-
 
         public void Stop()
         {

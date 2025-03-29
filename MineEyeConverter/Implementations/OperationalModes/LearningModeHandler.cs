@@ -38,8 +38,13 @@ namespace MineEyeConverter
             {
                 throw new ArgumentException("Instance name must not be null or empty.", nameof(instanceName));
             }
-            var config = Config.ConfigLoader.LoadConfiguration("config.xml");
-            var instanceConfig = GetInstanceConfig(config, instanceName);
+            var config = Config.ConfigLoader.LoadInstanceConfiguration(instanceName);
+            var instanceConfig = config.Instances.FirstOrDefault();
+            if (instanceConfig == null)
+            {
+                _log.ErrorFormat("Instance configuration not found for '{0}'", instanceName);
+                throw new KeyNotFoundException($"Instance configuration not found for '{instanceName}'");
+            }
             factory = new ModbusFactory();
             _slaveIds = [];
             xmlFilePath = instanceName + ".xml";

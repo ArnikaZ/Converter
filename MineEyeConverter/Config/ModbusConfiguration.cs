@@ -22,6 +22,7 @@ namespace MineEyeConverter
     {
         [XmlAttribute("name")]
         public string Name { get; set; } = string.Empty;
+
         [XmlElement("OperationMode")]
         public string OperationMode { get; set; } = string.Empty;
 
@@ -49,7 +50,6 @@ namespace MineEyeConverter
         [XmlElement("Port")]
         public int? Port { get; set; }
 
-
         [XmlElement("PortName")]
         public string PortName { get; set; } = string.Empty;
 
@@ -65,25 +65,32 @@ namespace MineEyeConverter
         [XmlElement("DataBits")]
         public int? DataBits { get; set; }
     }
+
     public class SlaveDeviceList
     {
         [XmlElement("Slave")]
         public List<Slave> Slaves { get; set; } = [];
     }
+
     public class Slave
     {
         [XmlElement("UnitId")]
         public int UnitId { get; set; }
+
+        [XmlElement("Description")]
         public string Description { get; set; } = string.Empty;
     }
+
     public class ClientWhiteList
     {
         [XmlElement("Client")]
         public List<Client> Clients { get; set; } = [];
+
         public bool CanClientRead(string ip)
         {
             return Clients.Any(c => string.Equals(c.IpAddress, ip));
         }
+
         public bool CanClientWrite(string ip)
         {
             return Clients.Any(c =>
