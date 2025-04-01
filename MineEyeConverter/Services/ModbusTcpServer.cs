@@ -45,6 +45,7 @@ namespace MineEyeConverter
                 throw new InvalidOperationException($"Instance '{instanceName}' not found in configuration");
             }
             int listeningPort = instanceConfig.ListeningPort;
+            _log.InfoFormat("Setting up TCP server with listening port: {0}", listeningPort);
             string connectionType = instanceConfig.ConnectionType;
             RtuSettings rtuSettings = instanceConfig.RtuSettings;
             modbusClientAccounts = instanceConfig.ClientWhiteList.Clients;

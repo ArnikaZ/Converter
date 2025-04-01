@@ -18,6 +18,9 @@ using System.Text.Json;
 using System.Runtime.CompilerServices;
 using System.Net.WebSockets;
 using MineEyeConverter.Config;
+using Topshelf.Runtime;
+using System.Text;
+
 
 [assembly: log4net.Config.XmlConfigurator(Watch =true)]
 namespace MineEyeConverter
@@ -32,7 +35,6 @@ namespace MineEyeConverter
         static void Main(string[] args)
         {
             log4net.ILog _log = log4net.LogManager.GetLogger(typeof(Program));
-            
 
             if (args.Length == 0)
             {
@@ -40,22 +42,8 @@ namespace MineEyeConverter
             }
             else
             {
-                var switchMappings = new Dictionary<string, string>
-            {
-                { "-name", "name" },
-                { "--name", "name" }
-            };
 
-                // Configure application from appsettings.json and command-line arguments
-                var config = new ConfigurationBuilder()
-                   .SetBasePath(AppContext.BaseDirectory)
-                   .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                   .AddCommandLine(args, switchMappings)
-                   .Build();
-
-
-                var services = config.GetSection("Service").GetChildren().ToList();
-
+                
                 string serviceName = string.Empty;
 
                 var exitCode = HostFactory.Run(x =>
@@ -63,50 +51,16 @@ namespace MineEyeConverter
                     x.AddCommandLineDefinition("name", f =>
                     {
                         serviceName = f;
-                        if (args.Contains("install"))
-                        {
-                            File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "service_name.txt"), f);
-                        }
                     });
                     x.ApplyCommandLine();
 
-                    if (string.IsNullOrEmpty(serviceName))
-                    {
-                        string serviceNameFile = Path.Combine(AppContext.BaseDirectory, "service_name.txt");
-                        if (File.Exists(serviceNameFile))
-                        {
-                            serviceName = File.ReadAllText(serviceNameFile).Trim();
-                            _log.InfoFormat("Service name loaded from file: {0} ", serviceName);
-
-                        }
-
-                    }
-
-                    var selectedServiceConfig = services.FirstOrDefault(
-                        s => s.GetValue<string>("Name")?.Equals(serviceName, StringComparison.OrdinalIgnoreCase) == true);
-
-                    if (selectedServiceConfig == null)
-                    {
-
-                        _log.ErrorFormat("Service configuration not found for {0}", serviceName);
-                    }
-                    else
-                    {
-                        _log.InfoFormat("Service configuration found for: {0}", serviceName);
-
-                    }
-
-
-                    string serviceDescription = selectedServiceConfig?.GetValue<string>("Description")
-                                                ?? "TCP <=> RTU Converter";
-
+                    x.AfterInstall(installSettings => {
+                        AddCommandLineParametersToStartupOptions(installSettings);
+                    });
 
                     x.Service<ModbusService>(s =>
                     {
-                        s.ConstructUsing(modbusService =>
-                        {
-                            return new ModbusService(serviceName);
-                        });
+                        s.ConstructUsing(modbusService => new ModbusService(serviceName));
                         s.WhenStarted(modbusService => modbusService.Start());
                         s.WhenStopped(modbusService => modbusService.Stop());
                     });
@@ -114,13 +68,55 @@ namespace MineEyeConverter
                     x.RunAsLocalSystem();
                     x.SetServiceName(serviceName);
                     x.SetDisplayName(serviceName);
-                    x.SetDescription(serviceDescription);
+                    x.SetDescription("MineEyeCOnverter");
                     x.StartAutomatically();
                 });
 
                 int exitCodeValue = (int)Convert.ChangeType(exitCode, exitCode.GetTypeCode());
                 Environment.ExitCode = exitCodeValue;
             }
+        }
+        private static void AddCommandLineParametersToStartupOptions(InstallHostSettings installSettings)
+        {
+            var serviceKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                $"SYSTEM\\CurrentControlSet\\Services\\{installSettings.ServiceName}",
+                true);
+
+            if (serviceKey == null)
+            {
+                throw new Exception($"Could not locate Registry Key for service '{installSettings.ServiceName}'");
+            }
+
+            var arguments = Environment.GetCommandLineArgs();
+
+            string programName = null;
+            StringBuilder argumentsList = new StringBuilder();
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                if (i == 0)
+                {
+                    // program name is the first argument
+                    programName = arguments[i];
+                }
+                else
+                {
+                    // Remove these servicename and instance arguments as TopShelf adds them as well
+                    // Remove install switch
+                    if (arguments[i].StartsWith("-servicename", StringComparison.InvariantCultureIgnoreCase) |
+                        arguments[i].StartsWith("-instance", StringComparison.InvariantCultureIgnoreCase) |
+                        arguments[i].StartsWith("install", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        continue;
+                    }
+                    argumentsList.Append(" ");
+                    argumentsList.Append(arguments[i]);
+                }
+            }
+
+            // Apply the arguments to the ImagePath value under the service Registry key
+            var imageName = $"\"{Environment.CurrentDirectory}\\{programName}\" {argumentsList.ToString()}";
+            serviceKey.SetValue("ImagePath", imageName, Microsoft.Win32.RegistryValueKind.String);
         }
 
         private static void ChooseAction()
