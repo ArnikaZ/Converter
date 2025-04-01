@@ -58,7 +58,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 10,
+          "SelectedChildIndex": 9,
           "Children": [
             {
               "$type": "Bookmark",
@@ -94,18 +94,6 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "ModbusConfiguration.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\ModbusConfiguration.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Config\\ModbusConfiguration.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\ModbusConfiguration.cs",
-              "RelativeToolTip": "MineEyeConverter\\Config\\ModbusConfiguration.cs",
-              "ViewState": "AgIAAA0AAAAAAAAAAAA8wGwAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-29T09:13:48.82Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 6,
               "Title": "ConfigLoader.cs",
               "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\ConfigLoader.cs",
@@ -124,10 +112,22 @@
               "RelativeDocumentMoniker": "MineEyeConverter\\Program.cs",
               "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Program.cs",
               "RelativeToolTip": "MineEyeConverter\\Program.cs",
-              "ViewState": "AgIAAHEAAAAAAAAAAAAgwH8AAABNAAAAAAAAAA==",
+              "ViewState": "AgIAAEYAAAAAAAAAAAAgwH8AAABNAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-16T13:04:34.443Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ModbusConfiguration.cs",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\ModbusConfiguration.cs",
+              "RelativeDocumentMoniker": "MineEyeConverter\\Config\\ModbusConfiguration.cs",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\ModbusConfiguration.cs",
+              "RelativeToolTip": "MineEyeConverter\\Config\\ModbusConfiguration.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAA8wGwAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-29T09:13:48.82Z"
             },
             {
               "$type": "Document",
@@ -151,8 +151,7 @@
               "RelativeToolTip": "MineEyeConverter\\Services\\ModbusService.cs",
               "ViewState": "AgIAADkAAAAAAAAAAAAxwE4AAAA/AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-28T11:24:26.242Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-28T11:24:26.242Z"
             },
             {
               "$type": "Document",

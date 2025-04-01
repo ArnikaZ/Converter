@@ -58,7 +58,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 16,
+          "SelectedChildIndex": 10,
           "Children": [
             {
               "$type": "Bookmark",
@@ -94,18 +94,6 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "LearningModeHandler.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
-              "RelativeToolTip": "MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
-              "ViewState": "AgIAABoAAAAAAAAAAAAQwC0AAABpAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-29T09:54:46.144Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 7,
               "Title": "ModbusConfiguration.cs",
               "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Config\\ModbusConfiguration.cs",
@@ -127,6 +115,31 @@
               "ViewState": "AgIAAH0AAAAAAAAAAAAqwI4AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-28T22:02:34.56Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Program.cs",
+              "RelativeDocumentMoniker": "MineEyeConverter\\Program.cs",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Program.cs",
+              "RelativeToolTip": "MineEyeConverter\\Program.cs",
+              "ViewState": "AgIAAHEAAAAAAAAAAAAgwH8AAABNAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-16T13:04:34.443Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "LearningModeHandler.cs",
+              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
+              "RelativeDocumentMoniker": "MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
+              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
+              "RelativeToolTip": "MineEyeConverter\\Implementations\\OperationalModes\\LearningModeHandler.cs",
+              "ViewState": "AgIAABoAAAAAAAAAAAAQwC0AAABpAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-29T09:54:46.144Z"
             },
             {
               "$type": "Document",
@@ -188,19 +201,6 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
               "WhenOpened": "2025-03-26T13:41:38.251Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Program.cs",
-              "RelativeDocumentMoniker": "MineEyeConverter\\Program.cs",
-              "ToolTip": "C:\\Users\\arnik\\OneDrive\\Pulpit\\MC3Kopia\\mineeyeconverter3\\MineEyeConverter\\Program.cs*",
-              "RelativeToolTip": "MineEyeConverter\\Program.cs*",
-              "ViewState": "AgIAAFwAAAAAAAAAAAAqwHYAAABiAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-16T13:04:34.443Z",
-              "EditorCaption": ""
             },
             {
               "$type": "Document",
